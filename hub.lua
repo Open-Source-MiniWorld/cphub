@@ -4221,26 +4221,9 @@ local function DestroyPreviousGuis()
     end)
 end
 
-local function GetCustomImageAsset(url, fileName)
-    local assetResult = url
-    pcall(function()
-        if writefile and getcustomasset then
-            local file = "CPHub_" .. (fileName or "asset") .. ".png"
-            if not isfile(file) then
-                writefile(file, game:HttpGet(url))
-            end
-            assetResult = getcustomasset(file)
-        end
-    end)
-    return assetResult
-end
-
 local function CreateNativeUI()
-    CPHub:Debug("INFO", "Dang khoi tao Giao dien Premium Glassmorphic UI Style (Blue Archive Theme)...")
+    CPHub:Debug("INFO", "Khởi tạo Giao diện CP Hub Dark Obsidian & Gold Accent UI...")
     DestroyPreviousGuis()
-
-    local BlueArchiveUrl = "https://i.ibb.co/WWV5Cb1z/bluearchive.png"
-    local BlueArchiveAsset = GetCustomImageAsset(BlueArchiveUrl, "bluearchive")
 
     -- CENTRALIZABLE DESIGN SYSTEM & THEME TOKENS (EASY CUSTOMIZATION & PERFECT CORNERS)
     local UITheme = {
@@ -4272,13 +4255,14 @@ local function CreateNativeUI()
     ScreenGui.DisplayOrder = 9999
     ScreenGui.Parent = TargetGui
 
-    -- Main Container (Ultra-Sleek Dark Slate Charcoal Frame with Glass Glow)
+    -- Main Container (Ultra-Sleek Solid Dark Obsidian Frame with Gold Stroke)
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     MainFrame.Size = UDim2.new(0.85, 0, 0.85, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.BackgroundColor3 = UITheme.MainBg
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 24)
+    MainFrame.BackgroundTransparency = 0
     MainFrame.BorderSizePixel = 0
     MainFrame.Active = true
     MainFrame.Draggable = true
@@ -4290,35 +4274,24 @@ local function CreateNativeUI()
     MainSizeConstraint.MinSize = Vector2.new(460, 310)
     MainSizeConstraint.Parent = MainFrame
 
-    -- Blue Archive Custom Background Image Overlay
-    local BgImage = Instance.new("ImageLabel")
-    BgImage.Name = "BgImage"
-    BgImage.Size = UDim2.new(1, 0, 1, 0)
-    BgImage.Position = UDim2.new(0, 0, 0, 0)
-    BgImage.BackgroundTransparency = 1
-    BgImage.Image = BlueArchiveAsset
-    BgImage.ImageTransparency = 0.35
-    BgImage.ScaleType = Enum.ScaleType.Crop
-    BgImage.Parent = MainFrame
-
     local MainCorner = Instance.new("UICorner")
     MainCorner.CornerRadius = UITheme.CornerMain
     MainCorner.Parent = MainFrame
 
     local MainStroke = Instance.new("UIStroke")
-    MainStroke.Color = UITheme.AccentColor
-    MainStroke.Transparency = 0.75
+    MainStroke.Color = Color3.fromRGB(245, 230, 175)
+    MainStroke.Transparency = 0.4
     MainStroke.Thickness = 1.5
     MainStroke.Parent = MainFrame
 
     -- Header Bar
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
-    TitleBar.Size = UDim2.new(1, 0, 0, 58)
-    TitleBar.BackgroundColor3 = UITheme.HeaderBg
-    TitleBar.BackgroundTransparency = 0.25
+    TitleBar.Size = UDim2.new(1, 0, 0, 52)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(22, 25, 36)
+    TitleBar.BackgroundTransparency = 0
     TitleBar.BorderSizePixel = 0
-    TitleBar.ZIndex = 2
+    TitleBar.ZIndex = 5
     TitleBar.Parent = MainFrame
 
     local TitleCorner = Instance.new("UICorner")
@@ -4331,61 +4304,57 @@ local function CreateNativeUI()
     HeaderAccentLine.Position = UDim2.new(0, 0, 1, -2)
     HeaderAccentLine.BackgroundColor3 = Color3.fromRGB(245, 230, 175)
     HeaderAccentLine.BorderSizePixel = 0
+    HeaderAccentLine.ZIndex = 6
     HeaderAccentLine.Parent = TitleBar
 
-    -- Top Left Logo Icon Badge (Blue Archive Theme Badge)
-    local LogoBadge = Instance.new("ImageLabel")
-    LogoBadge.Size = UDim2.new(0, 40, 0, 40)
-    LogoBadge.Position = UDim2.new(0, 12, 0, 9)
-    LogoBadge.BackgroundColor3 = UITheme.AccentColor
-    LogoBadge.Image = BlueArchiveAsset
-    LogoBadge.ScaleType = Enum.ScaleType.Crop
+    -- Top Left Logo Badge (Crisp Gold Badge)
+    local LogoBadge = Instance.new("Frame")
+    LogoBadge.Size = UDim2.new(0, 34, 0, 34)
+    LogoBadge.Position = UDim2.new(0, 10, 0.5, -17)
+    LogoBadge.BackgroundColor3 = Color3.fromRGB(245, 230, 175)
+    LogoBadge.ZIndex = 6
     LogoBadge.Parent = TitleBar
 
     local LogoBadgeCorner = Instance.new("UICorner")
-    LogoBadgeCorner.CornerRadius = UDim.new(0, 8)
+    LogoBadgeCorner.CornerRadius = UDim.new(0, 6)
     LogoBadgeCorner.Parent = LogoBadge
 
-    local LogoBadgeStroke = Instance.new("UIStroke")
-    LogoBadgeStroke.Color = UITheme.AccentColor
-    LogoBadgeStroke.Thickness = 1.5
-    LogoBadgeStroke.Parent = LogoBadge
+    local LogoText = Instance.new("TextLabel")
+    LogoText.Size = UDim2.new(1, 0, 1, 0)
+    LogoText.BackgroundTransparency = 1
+    LogoText.Text = "⚡CP"
+    LogoText.TextColor3 = Color3.fromRGB(18, 18, 18)
+    LogoText.TextSize = 13
+    LogoText.Font = UITheme.FontBold
+    LogoText.ZIndex = 7
+    LogoText.Parent = LogoBadge
 
     -- Header Title & Subtitle
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(0, 160, 0, 22)
-    TitleLabel.Position = UDim2.new(0, 58, 0, 9)
+    TitleLabel.Size = UDim2.new(0, 140, 0, 20)
+    TitleLabel.Position = UDim2.new(0, 50, 0.5, -10)
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = "📜 Main Farm"
+    TitleLabel.Text = "👑 Super Kaitun"
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextSize = 14
+    TitleLabel.TextSize = 13
     TitleLabel.Font = UITheme.FontBold
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    TitleLabel.ZIndex = 6
     TitleLabel.Parent = TitleBar
-
-    local SubtitleLabel = Instance.new("TextLabel")
-    SubtitleLabel.Size = UDim2.new(0, 160, 0, 18)
-    SubtitleLabel.Position = UDim2.new(0, 58, 0, 30)
-    SubtitleLabel.BackgroundTransparency = 1
-    SubtitleLabel.Text = "⚡ CP HUB V5"
-    SubtitleLabel.TextColor3 = UITheme.AccentColor
-    SubtitleLabel.TextSize = 10
-    SubtitleLabel.Font = UITheme.FontBold
-    SubtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    SubtitleLabel.Parent = TitleBar
 
     -- Top Right Horizontal Icon Tab Bar Container (Smooth Horizontal ScrollingFrame)
     local IconTabBar = Instance.new("ScrollingFrame")
     IconTabBar.Name = "IconTabBar"
-    IconTabBar.Size = UDim2.new(1, -270, 0, 36)
-    IconTabBar.Position = UDim2.new(0, 225, 0.5, -18)
+    IconTabBar.Size = UDim2.new(1, -240, 0, 34)
+    IconTabBar.Position = UDim2.new(0, 195, 0.5, -17)
     IconTabBar.BackgroundTransparency = 1
     IconTabBar.BorderSizePixel = 0
     IconTabBar.ScrollBarThickness = 0
-    IconTabBar.CanvasSize = UDim2.new(0, 0, 0, 0)
+    IconTabBar.CanvasSize = UDim2.new(0, 560, 0, 0)
     IconTabBar.AutomaticCanvasSize = Enum.AutomaticSize.X
     IconTabBar.ClipsDescendants = true
+    IconTabBar.ZIndex = 10
     IconTabBar.Parent = TitleBar
 
     local IconList = Instance.new("UIListLayout")
@@ -4398,12 +4367,13 @@ local function CreateNativeUI()
     -- Top Right Control Buttons (Close / Minimize)
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Size = UDim2.new(0, 28, 0, 28)
-    CloseBtn.Position = UDim2.new(1, -38, 0.5, -14)
+    CloseBtn.Position = UDim2.new(1, -36, 0.5, -14)
     CloseBtn.BackgroundColor3 = Color3.fromRGB(235, 55, 75)
     CloseBtn.Text = "X"
     CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseBtn.TextSize = 13
     CloseBtn.Font = UITheme.FontBold
+    CloseBtn.ZIndex = 12
     CloseBtn.Parent = TitleBar
 
     local CloseBtnCorner = Instance.new("UICorner")
@@ -4435,16 +4405,19 @@ local function CreateNativeUI()
     TooltipStroke.Thickness = 1
     TooltipStroke.Parent = TooltipLabel
 
-    -- Draggable Floating Toggle Button with Blue Archive Image (Docked neatly on screen edge)
-    local FloatBtn = Instance.new("ImageButton")
+    -- Draggable Floating Toggle Button (Crisp Circular Gold Button)
+    local FloatBtn = Instance.new("TextButton")
     FloatBtn.Name = "CPHub_FloatingToggle"
     FloatBtn.Size = UDim2.fromOffset(48, 48)
     FloatBtn.Position = UDim2.new(0.02, 0, 0.45, 0)
-    FloatBtn.BackgroundColor3 = UITheme.AccentColor
-    FloatBtn.Image = BlueArchiveAsset
-    FloatBtn.ScaleType = Enum.ScaleType.Crop
+    FloatBtn.BackgroundColor3 = Color3.fromRGB(245, 230, 175)
+    FloatBtn.Text = "⚡ CP"
+    FloatBtn.TextColor3 = Color3.fromRGB(18, 18, 18)
+    FloatBtn.TextSize = 13
+    FloatBtn.Font = UITheme.FontBold
     FloatBtn.Active = true
     FloatBtn.Draggable = true
+    FloatBtn.ZIndex = 30
     FloatBtn.Parent = ScreenGui
 
     local FloatCorner = Instance.new("UICorner")
@@ -4452,7 +4425,7 @@ local function CreateNativeUI()
     FloatCorner.Parent = FloatBtn
 
     local FloatStroke = Instance.new("UIStroke")
-    FloatStroke.Color = UITheme.AccentColor
+    FloatStroke.Color = Color3.fromRGB(255, 255, 255)
     FloatStroke.Thickness = 2
     FloatStroke.Parent = FloatBtn
 
@@ -4630,12 +4603,12 @@ local function CreateNativeUI()
 
     local TabButtons = {}
     local TabFrames = {}
-    local TabIcons = {"📜", "💰", "👹", "🗡️", "🔮", "🌊", "🌸", "🍎", "🎣", "👁️", "🌀", "📊", "⚙️", "💻"}
+    local TabIcons = {"👑", "⚔️", "💰", "👹", "🗡️", "🔮", "🌊", "🌸", "🍎", "🎣", "👁️", "🌀", "📊", "⚙️"}
     local TabNames = {
-        "Main Farm", "Farm Rương", "Boss Farm", "Items & Võ",
-        "Raid & Awaken", "Sea Events", "Race V1-V4", "Trái Ác Quỷ",
-        "Câu Cá", "ESP Visuals", "Teleport Đảo", "Auto Stats",
-        "System & Hop", "Dev Console"
+        "Super Kaitun", "Main Farm", "Farm Rương", "Boss Farm",
+        "Items & Võ", "Raid & Awaken", "Sea Events", "Race V1-V4",
+        "Trái Ác Quỷ", "Câu Cá", "ESP Visuals", "Teleport Đảo",
+        "Auto Stats", "System & Dev"
     }
 
     local activeTabIndex = 1
@@ -5242,13 +5215,22 @@ local function CreateNativeUI()
 
     -- Left Column Widgets: 🌟 SUPER KAITUN & AUTO KAITUN PRO MASTER CONTROLS
     AddSectionDivider(Left1, "🏆 ULTIMATE SUPER KAITUN (ALL IN ONE)")
+    -- ============================================================================
+    -- TAB 1: 👑 SUPER KAITUN & AUTO KAITUN PRO MASTER DASHBOARD
+    -- ============================================================================
+    local Page1 = TabFrames[1]
+    local Left1 = Page1:FindFirstChild("LeftColumn")
+    local Right1 = Page1:FindFirstChild("RightColumn")
+
+    -- Left Column: 🏆 ULTIMATE SUPER KAITUN MACRO AUTOMATION
+    AddSectionDivider(Left1, "🏆 ULTIMATE SUPER KAITUN (ALL IN ONE)")
     AddCheckbox(Left1, "👑 BẬT SUPER KAITUN TOÀN DIỆN", CPHub.Config.SuperKaitun, function(v)
         CPHub.Config.SuperKaitun = v
         if v then CPHub.Config.AutoKaitun = true end
         MasterConfigModule.Save()
         CPHub:Debug("SUCCESS", "Kích hoạt Super Kaitun Toàn Diện: " .. tostring(v))
     end)
-    AddCheckbox(Left1, "Tự Cày Tất Cả Kiếm/Súng Thần Thoại (CDK/TTK/Anchor)", CPHub.Config.SuperKaitunFarmAllSwords, function(v)
+    AddCheckbox(Left1, "Tự Cày Tất Cả Kiếm & Súng Huyền Thoại", CPHub.Config.SuperKaitunFarmAllSwords, function(v)
         CPHub.Config.SuperKaitunFarmAllSwords = v
         MasterConfigModule.Save()
     end)
@@ -5269,65 +5251,90 @@ local function CreateNativeUI()
         MasterConfigModule.Save()
     end)
 
-    AddSectionDivider(Left1, "🌟 AUTO KAITUN PRO ENGINE (1 - 2550)")
-    AddCheckbox(Left1, "⚡ BẬT AUTO KAITUN PRO (1 - 2550)", CPHub.Config.AutoKaitun, function(v)
+    -- Right Column: 🌟 AUTO KAITUN PRO ENGINE (1 - 2550 FULL PROGRESSION)
+    AddSectionDivider(Right1, "🌟 TIẾN TRÌNH AUTO KAITUN (1 - 2550)")
+    AddCheckbox(Right1, "⚡ BẬT AUTO KAITUN PRO (1 - 2550)", CPHub.Config.AutoKaitun, function(v)
         CPHub.Config.AutoKaitun = v
         MasterConfigModule.Save()
         CPHub:Debug("SUCCESS", "Trạng thái Auto Kaitun Pro: " .. tostring(v))
     end)
-    AddListPickerModal(Left1, "Kaitun Stats Build Preset", {"Balanced (Melee + Defense + Sword)", "Fruit Main", "Sword Main"}, CPHub.Config.KaitunStatPreset, function(v)
+    AddListPickerModal(Right1, "Kaitun Stats Build Preset", {"Balanced (Melee + Defense + Sword)", "Fruit Main", "Sword Main"}, CPHub.Config.KaitunStatPreset, function(v)
         CPHub.Config.KaitunStatPreset = v
         MasterConfigModule.Save()
     end)
-    AddCheckbox(Left1, "Tự Động Phân Bổ Điểm Stats", CPHub.Config.KaitunAutoStats, function(v) CPHub.Config.KaitunAutoStats = v; MasterConfigModule.Save() end)
-    AddCheckbox(Left1, "Tự Động Mở Sea (Sea 1 -> 2 & 2 -> 3)", CPHub.Config.KaitunAutoNextSea, function(v) CPHub.Config.KaitunAutoNextSea = v; MasterConfigModule.Save() end)
-    AddCheckbox(Left1, "Tự Động Giải Đố Saber Quest (Lv 200+)", CPHub.Config.KaitunAutoSaber, function(v) CPHub.Config.KaitunAutoSaber = v; MasterConfigModule.Save() end)
-    AddCheckbox(Left1, "Tự Động Làm Bartilo Quest (Lv 850+)", CPHub.Config.KaitunAutoBartilo, function(v) CPHub.Config.KaitunAutoBartilo = v; MasterConfigModule.Save() end)
-    AddCheckbox(Left1, "Tự Động Nâng Cấp Tộc V2 (Hoa V2)", CPHub.Config.KaitunAutoRaceV2, function(v) CPHub.Config.KaitunAutoRaceV2 = v; MasterConfigModule.Save() end)
-    AddCheckbox(Left1, "Tự Động Mua Võ & Nâng Cấp Võ V2", CPHub.Config.KaitunAutoBuyFightingStyles, function(v) CPHub.Config.KaitunAutoBuyFightingStyles = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Phân Bổ Điểm Stats", CPHub.Config.KaitunAutoStats, function(v) CPHub.Config.KaitunAutoStats = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Mở Sea (Sea 1 -> 2 & 2 -> 3)", CPHub.Config.KaitunAutoNextSea, function(v) CPHub.Config.KaitunAutoNextSea = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Giải Đố Saber Quest (Lv 200+)", CPHub.Config.KaitunAutoSaber, function(v) CPHub.Config.KaitunAutoSaber = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Làm Bartilo Quest (Lv 850+)", CPHub.Config.KaitunAutoBartilo, function(v) CPHub.Config.KaitunAutoBartilo = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Nâng Cấp Tộc V2 (Hoa V2)", CPHub.Config.KaitunAutoRaceV2, function(v) CPHub.Config.KaitunAutoRaceV2 = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Mua Võ & Nâng Cấp Võ V2", CPHub.Config.KaitunAutoBuyFightingStyles, function(v) CPHub.Config.KaitunAutoBuyFightingStyles = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Thu Gom Rương Tích Beli", CPHub.Config.KaitunAutoCollectChests, function(v) CPHub.Config.KaitunAutoCollectChests = v; MasterConfigModule.Save() end)
 
-    AddSectionDivider(Left1, "Manual Farm Targets & Lock Config")
-    AddListPickerModal(Left1, "Select Farm Mode & Target", {"Level & Quest (Auto Level)", "Farm Bones (Haunted Castle)", "Cake Prince / Dough King", "Kitsune Azure Embers", "Farm Near Mobs"}, "Level & Quest (Auto Level)", function(v) CPHub.Config.SelectFarmMode = v; MasterConfigModule.Save() end)
-    AddSlider(Left1, "Select Lock Mastery", 0, 1000, 600, "%", function() end)
-    AddListPickerModal(Left1, "Select Weapon Lock Mastery", {"Melee", "Sword", "Blox Fruit", "Gun"}, "Melee", function() end)
-    AddCreamButton(Left1, "Refresh Weapon List", function() CPHub:Debug("INFO", "Refreshed Weapon List") end)
-    AddCheckbox(Left1, "Start Lock Mastery", false, function(v) end)
-    AddSlider(Left1, "Select Lock Beli", 0, 1000, 0, "%", function() end)
-    AddCheckbox(Left1, "Start Lock Beli", false, function(v) end)
-    AddSlider(Left1, "Select Lock Fragments", 0, 50000, 30000, "%", function() end)
-    AddCheckbox(Left1, "Start Lock Fragments", false, function(v) end)
-    AddCheckbox(Left1, "Auto Redeem Code x2 EXP", false, function(v) end)
+    -- ============================================================================
+    -- TAB 2: ⚔️ MAIN FARM & COMBAT CONTROLS
+    -- ============================================================================
+    local Page2 = TabFrames[2]
+    local Left2 = Page2:FindFirstChild("LeftColumn")
+    local Right2 = Page2:FindFirstChild("RightColumn")
 
-    -- Right Column Widgets (Screenshot Replicated)
-    AddCheckbox(Right1, "Auto Farm", CPHub.Config.AutoFarm, function(v) CPHub.Config.AutoFarm = v end)
-    AddCheckbox(Right1, "Fast Attack Mode (Super Fast)", CPHub.Config.FastAttack, function(v) CPHub.Config.FastAttack = v end)
-    AddListPickerModal(Right1, "Selected Weapon", {"Melee", "Sword", "Blox Fruit", "Gun"}, CPHub.Config.SelectWeapon, function(v) CPHub.Config.SelectWeapon = v end)
-    AddCreamButton(Right1, "Refreseh Weapon", function() CPHub:Debug("INFO", "Refreshed Weapon List") end)
+    -- Left Column: ⚔️ FARM LEVEL & NHIỆM VỤ THỦ CÔNG
+    AddSectionDivider(Left2, "⚔️ FARM LEVEL & NHIỆM VỤ THỦ CÔNG")
+    AddCheckbox(Left2, "⚡ BẬT AUTO FARM LEVEL", CPHub.Config.AutoFarm, function(v)
+        CPHub.Config.AutoFarm = v
+        MasterConfigModule.Save()
+    end)
+    AddListPickerModal(Left2, "Chọn Chế Độ Farm Quái", {"Level & Quest (Auto Level)", "Farm Bones (Haunted Castle)", "Cake Prince / Dough King", "Kitsune Azure Embers", "Quái Gần Nhất"}, CPHub.Config.SelectFarmMode, function(v)
+        CPHub.Config.SelectFarmMode = v
+        MasterConfigModule.Save()
+    end)
+    AddListPickerModal(Left2, "Chọn Vũ Khí Tấn Công", {"Melee", "Sword", "Blox Fruit", "Gun"}, CPHub.Config.SelectWeapon, function(v)
+        CPHub.Config.SelectWeapon = v
+        MasterConfigModule.Save()
+    end)
+    AddCreamButton(Left2, "🔄 Làm Mới Danh Sách Vũ Khí", function() CPHub:Debug("INFO", "Refreshed Weapon List") end)
+    AddCheckbox(Left2, "Fast Attack V4 Siêu Tốc (0 Delay)", CPHub.Config.FastAttack, function(v)
+        CPHub.Config.FastAttack = v
+        MasterConfigModule.Save()
+    end)
+    AddSlider(Left2, "Tốc Độ Tấn Công Fast Attack", 5, 50, 15, " ms", function(v)
+        CPHub.Config.FastAttackSpeed = v / 1000
+    end)
+    AddCheckbox(Left2, "Gom Quái Lại Gần (Mob Bring)", CPHub.Config.MobBring, function(v)
+        CPHub.Config.MobBring = v
+    end)
+    AddSlider(Left2, "Bán Kính Gom Quái", 100, 450, 350, " studs", function(v)
+        CPHub.Config.MobBringRadius = v
+    end)
+    AddSlider(Left2, "Khoảng Cách Đứng Đánh An Toàn", 10, 60, 20, " studs", function(v)
+        CPHub.Config.AttackReach = v
+    end)
 
-    AddCheckbox(Right1, "Auto Fast mode", true, function(v) end)
-    AddCheckbox(Right1, "Fast Attack", true, function(v) CPHub.Config.FastAttack = v end)
-    AddCheckbox(Right1, "Bypass Tp", true, function(v) end)
-    AddCheckbox(Right1, "Auto Haki", true, function(v) CPHub.Config.AutoBuso = v end)
-    AddCheckbox(Right1, "Auto Open Observation", false, function(v) CPHub.Config.AutoKen = v end)
-    AddCheckbox(Right1, "Auto Rejoin", true, function(v) end)
-    AddCheckbox(Right1, "No Damage UI", true, function(v) end)
-    AddCheckbox(Right1, "Off Notifications", false, function(v) end)
-    AddCheckbox(Right1, "Anit AFK", true, function(v) end)
+    -- Right Column: 🛡️ HAKI & MASTERY SKILL SPAMMER
+    AddSectionDivider(Right2, "🛡️ HAKI & TIỆN ÍCH CHIẾN ĐẤU")
+    AddCheckbox(Right2, "Tự Bật Buso Haki (Vũ Trang)", CPHub.Config.AutoBuso, function(v) CPHub.Config.AutoBuso = v end)
+    AddCheckbox(Right2, "Tự Bật Ken Haki (Quan Sát)", CPHub.Config.AutoKen, function(v) CPHub.Config.AutoKen = v end)
+    AddCheckbox(Right2, "Tự Động Nhập Code x2 EXP", false, function() end)
+    AddCheckbox(Right2, "Bypass Dịch Chuyển (Safe Tween TP)", true, function() end)
+    AddCheckbox(Right2, "Anti AFK (Chống Văng Game)", true, function() end)
+    AddCheckbox(Right2, "Tự Động Rejoin Khi Mất Kết Nối", true, function() end)
 
-    AddSectionDivider(Right1, "Auto Farm Mastery Skill")
-    AddCheckbox(Right1, "Click", false, function(v) end)
-    AddCheckbox(Right1, "Skill Z", false, function(v) end)
-    AddCheckbox(Right1, "Skill X", false, function(v) end)
-    AddCheckbox(Right1, "Skill C", false, function(v) end)
-    AddCheckbox(Right1, "Skill V", false, function(v) end)
+    AddSectionDivider(Right2, "🎯 FARM MASTERY & SKILL SPAMMER")
+    AddCheckbox(Right2, "Khóa Điểm Farm Mastery Vũ Khí", CPHub.Config.StartLockMastery, function(v) CPHub.Config.StartLockMastery = v end)
+    AddListPickerModal(Right2, "Chọn Vũ Khí Khóa Mastery", {"Melee", "Sword", "Blox Fruit", "Gun"}, CPHub.Config.SelectWeaponLockMastery, function(v) CPHub.Config.SelectWeaponLockMastery = v end)
+    AddSlider(Right2, "Mục Tiêu Điểm Mastery", 100, 600, 600, " Mastery", function(v) CPHub.Config.SelectLockMastery = v end)
+    AddCheckbox(Right2, "Spam Đòn Thường (Click)", true, function() end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu Z", CPHub.Config.SkillSpamZ, function(v) CPHub.Config.SkillSpamZ = v end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu X", CPHub.Config.SkillSpamX, function(v) CPHub.Config.SkillSpamX = v end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu C", CPHub.Config.SkillSpamC, function(v) CPHub.Config.SkillSpamC = v end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu V", CPHub.Config.SkillSpamV, function(v) CPHub.Config.SkillSpamV = v end)
 
-    -- Populating All 14 Icon Feature Tabs with 2-Column Screenshot Style UI
-    for i = 2, 14 do
+    -- Populating All Remaining 12 Feature Tabs (3 to 14)
+    for i = 3, 14 do
         local page = TabFrames[i]
         local lCol = page:FindFirstChild("LeftColumn")
         local rCol = page:FindFirstChild("RightColumn")
 
-        if i == 2 then
+        if i == 3 then
             AddSectionDivider(lCol, "Auto Chest Collector")
             AddCheckbox(lCol, "Auto Farm Chests (Beli)", CPHub.Config.AutoChest, function(v) CPHub.Config.AutoChest = v end)
             AddSlider(lCol, "Select Chest Fly Speed", 100, 400, 300, " studs/s", function(v) CPHub.Config.TweenSpeed = v end)
@@ -5338,7 +5345,7 @@ local function CreateNativeUI()
             AddListPickerModal(rCol, "Select Target Material", {"Bones", "Angel Wings", "Vampire Fang", "Conjured Cocoa", "Magma Ore", "Fish Tail", "Dragon Scale", "Ectoplasm", "Demonic Soul"}, "Bones", function(v) CPHub.Config.SelectMaterial = v end)
             AddCreamButton(rCol, "Refresh Materials List", function() end)
 
-        elseif i == 3 then
+        elseif i == 4 then
             AddSectionDivider(lCol, "Boss Farm Selector")
             AddCheckbox(lCol, "Auto Farm Select Boss", CPHub.Config.AutoFarmBoss, function(v) CPHub.Config.AutoFarmBoss = v end)
             AddListPickerModal(lCol, "Select Target Boss", {"Diamond", "Jeremy", "Fajita", "Smoke Admiral", "Awakened Ice Admiral", "Tide Keeper", "Stone", "Island Empress", "Kilo Admiral", "Captain Elephant", "Beautiful Pirate", "Soul Reaper", "Cake Queen"}, "Cake Queen", function(v) CPHub.Config.SelectBoss = v end)
@@ -5349,7 +5356,7 @@ local function CreateNativeUI()
             AddCheckbox(rCol, "Auto Dodge Boss Skill", true, function() end)
             AddCreamButton(rCol, "Farm All Spawner Bosses", function() end)
 
-        elseif i == 4 then
+        elseif i == 5 then
             AddSectionDivider(lCol, "Weapon Quests Solver")
             AddCreamButton(lCol, "Auto Obtain Cursed Dual Katana (CDK)", function()
                 CPHub.Config.AutoObtainCDK = not CPHub.Config.AutoObtainCDK
@@ -5454,7 +5461,7 @@ local function CreateNativeUI()
                 pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "Reroll", "1"); CPHub:Debug("SUCCESS", "Đã Đổi Tộc Ngẫu Nhiên!") end)
             end)
 
-        elseif i == 5 then
+        elseif i == 6 then
             AddSectionDivider(lCol, "Auto Raid Engine")
             AddCheckbox(lCol, "Auto Clear Raid Dungeon", CPHub.Config.AutoRaid, function(v) CPHub.Config.AutoRaid = v end)
             AddListPickerModal(lCol, "Select Microchip Raid", {"Flame", "Ice", "Quake", "Light", "Dark", "Spider", "Rumble", "Magma", "Buddha", "Dough"}, "Dough", function(v) CPHub.Config.SelectRaidChip = v end)
@@ -5467,7 +5474,7 @@ local function CreateNativeUI()
             AddCheckbox(rCol, "Auto Awaken Skill V", true, function() pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("Awaken") end) end)
             AddCheckbox(rCol, "Auto Awaken Skill F", true, function() pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("Awaken") end) end)
 
-        elseif i == 6 then
+        elseif i == 7 then
             AddSectionDivider(lCol, "World & Sea Events Engine")
             AddCheckbox(lCol, "Auto Factory Raid (Sea 2)", CPHub.Config.AutoFactory, function(v) CPHub.Config.AutoFactory = v end)
             AddCheckbox(lCol, "Auto Pirate Raid Castle (Sea 3)", CPHub.Config.AutoPirateRaid, function(v) CPHub.Config.AutoPirateRaid = v end)
@@ -5486,7 +5493,7 @@ local function CreateNativeUI()
                 CPHub:Debug("INFO", "Mirage Moon Alignment Status: " .. tostring(CPHub.Config.AutoFindMirage))
             end)
 
-        elseif i == 7 then
+        elseif i == 8 then
             AddSectionDivider(lCol, "Race V1 - V4 Upgrade")
             AddCreamButton(lCol, "Auto Find Flowers V2 (Red/Blue/Yellow)", function()
                 CPHub.Config.AutoFlowerV2 = not CPHub.Config.AutoFlowerV2
@@ -5516,7 +5523,7 @@ local function CreateNativeUI()
                 end)
             end)
 
-        elseif i == 8 then
+        elseif i == 9 then
             AddSectionDivider(lCol, "Devil Fruit Gacha & Store")
             AddCheckbox(lCol, "Auto Random Spin Fruit (Tự Động Random)", CPHub.Config.AutoSpinFruit, function(v) CPHub.Config.AutoSpinFruit = v end)
             AddCreamButton(lCol, "🎲 Random Spin Fruit Immediately (Random Ngay)", function()
@@ -5545,7 +5552,7 @@ local function CreateNativeUI()
                 end)
             end)
 
-        elseif i == 9 then
+        elseif i == 10 then
             AddSectionDivider(lCol, "Auto Fishing Engine")
             AddCheckbox(lCol, "Auto Fishing Engine (Bật/Tắt)", CPHub.Config.AutoFishing, function(v) CPHub.Config.AutoFishing = v end)
             AddCheckbox(lCol, "Auto Cast Rod", true, function() end)
@@ -5556,7 +5563,7 @@ local function CreateNativeUI()
             AddCreamButton(rCol, "Buy Rare Fishing Bait", function() pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyBait", "Rare Bait") end) end)
             AddCreamButton(rCol, "Auto Sell Fish to Merchant", function() pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("SellAllFish") end) end)
 
-        elseif i == 10 then
+        elseif i == 11 then
             AddSectionDivider(lCol, "ESP Visual Wallhack")
             AddCheckbox(lCol, "ESP Player Tracer & Box", CPHub.Config.ESPPlayer, function(v) CPHub.Config.ESPPlayer = v end)
             AddCheckbox(lCol, "ESP Chest (Beli Chests)", CPHub.Config.ESPChest, function(v) CPHub.Config.ESPChest = v end)
@@ -5567,7 +5574,7 @@ local function CreateNativeUI()
             AddCheckbox(rCol, "ESP Mirage Island", true, function() end)
             AddCheckbox(rCol, "ESP Kitsune Island", true, function() end)
 
-        elseif i == 11 then
+        elseif i == 12 then
             local sea1and2Islands = {
                 "Starter Island (Pirate)", "Starter Island (Marine)", "Jungle", "Pirate Village", "Desert",
                 "Middle Town", "Frozen Village", "Marine Fortress", "Skylands Lower", "Skylands Upper 1",
@@ -5599,7 +5606,7 @@ local function CreateNativeUI()
                 if cf then SmoothTweenTo(cf) end
             end)
 
-        elseif i == 12 then
+        elseif i == 13 then
             AddSectionDivider(lCol, "Auto Stats Allocator")
             AddCheckbox(lCol, "Auto Stat Melee (Cận Chiến)", CPHub.Config.AutoStatMelee, function(v) CPHub.Config.AutoStatMelee = v end)
             AddCheckbox(lCol, "Auto Stat Defense (Máu / Giáp)", CPHub.Config.AutoStatDefense, function(v) CPHub.Config.AutoStatDefense = v end)
@@ -5617,7 +5624,7 @@ local function CreateNativeUI()
             end)
             AddCreamButton(rCol, "Max Out All Available Points", function() end)
 
-        elseif i == 13 then
+        elseif i == 14 then
             local function ExecuteServerHop(lowPlayerOnly)
                 CPHub:Debug("INFO", "Searching for target server instance...")
                 pcall(function()
@@ -5665,6 +5672,45 @@ local function CreateNativeUI()
                 CPHub:Debug("SUCCESS", "Đã gửi gói tin thử nghiệm tới Webhook!")
             end)
 
+            AddSectionDivider(lCol, "System Diagnostics & Logs")
+            AddCheckbox(lCol, "In Nhật Ký ra Console F9", CPHub.Config.LogToConsole, function(v) CPHub.Config.LogToConsole = v end)
+            AddCreamButton(lCol, "🧹 Xóa Sạch Nhật Ký (Clear)", function()
+                CPHub.Logs = {}
+                if CPHub.ClearTerminalUI then CPHub.ClearTerminalUI() end
+                CPHub:Debug("INFO", "Nhật ký hệ thống đã được làm sạch!")
+            end)
+            AddCreamButton(lCol, "📋 Sao Chép Nhật Ký (Copy)", function()
+                pcall(function()
+                    if setclipboard then
+                        setclipboard(table.concat(CPHub.Logs, "\n"))
+                        CPHub:Debug("SUCCESS", "Đã sao chép toàn bộ nhật ký vào Clipboard!")
+                    end
+                end)
+            end)
+            AddCreamButton(lCol, "⚡ Kiểm Tra Hệ Thống (Self Test)", function()
+                CPHub:Debug("INFO", "=== ĐANG CHẠY TỰ KIỂM TRA HỆ THỐNG ===")
+                local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+                if commF then
+                    CPHub:Debug("SUCCESS", "✓ Kết nối Remote Function CommF_ OK!")
+                else
+                    CPHub:Debug("ERROR", "✗ Không tìm thấy Remote Function CommF_!")
+                end
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    CPHub:Debug("SUCCESS", "✓ Nhân vật LocalPlayer & HumanoidRootPart OK!")
+                else
+                    CPHub:Debug("WARN", "⚠ Nhân vật đang tải hoặc chưa sẵn sàng!")
+                end
+                CPHub:Debug("SUCCESS", "✓ Kiểm tra hoàn tất: Toàn bộ Module hoạt động ổn định!")
+            end)
+            AddCreamButton(lCol, "📊 Xuất File Dữ Liệu (CPHub_Dump.txt)", function()
+                pcall(function()
+                    if writefile then
+                        writefile("CPHub_Dump.txt", table.concat(CPHub.Logs, "\n"))
+                        CPHub:Debug("SUCCESS", "Đã xuất dữ liệu ra tệp CPHub_Dump.txt!")
+                    end
+                end)
+            end)
+
             AddSectionDivider(rCol, "Server Hop & System Tools")
             AddCreamButton(rCol, "🌐 Server Hop Low Player (Ít Người)", function() ExecuteServerHop(true) end)
             AddCreamButton(rCol, "🎲 Server Hop Random (Đổi Server)", function() ExecuteServerHop(false) end)
@@ -5680,50 +5726,6 @@ local function CreateNativeUI()
                 end)
             end)
             AddCreamButton(rCol, "⛔ UNLOAD HUB / DELETE EVERYTHING", function() CPHub:Unload() end)
-
-        elseif i == 14 then
-            AddSectionDivider(lCol, "System Diagnostics & Logs")
-            AddCheckbox(lCol, "In Nhật Ký ra Console F9", CPHub.Config.LogToConsole, function(v) CPHub.Config.LogToConsole = v end)
-            
-            AddCreamButton(lCol, "🧹 Xóa Sạch Nhật Ký (Clear)", function()
-                CPHub.Logs = {}
-                if CPHub.ClearTerminalUI then CPHub.ClearTerminalUI() end
-                CPHub:Debug("INFO", "Nhật ký hệ thống đã được làm sạch!")
-            end)
-
-            AddCreamButton(lCol, "📋 Sao Chép Nhật Ký (Copy To Clipboard)", function()
-                pcall(function()
-                    if setclipboard then
-                        setclipboard(table.concat(CPHub.Logs, "\n"))
-                        CPHub:Debug("SUCCESS", "Đã sao chép toàn bộ nhật ký vào Clipboard!")
-                    end
-                end)
-            end)
-
-            AddCreamButton(lCol, "⚡ Kiểm Tra Hệ Thống (Self Test Remotes)", function()
-                CPHub:Debug("INFO", "=== ĐANG CHẠY TỰ KIỂM TRA HỆ THỐNG ===")
-                local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
-                if commF then
-                    CPHub:Debug("SUCCESS", "✓ Kết nối Remote Function CommF_ OK!")
-                else
-                    CPHub:Debug("ERROR", "✗ Không tìm thấy Remote Function CommF_!")
-                end
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    CPHub:Debug("SUCCESS", "✓ Nhân vật LocalPlayer & HumanoidRootPart OK!")
-                else
-                    CPHub:Debug("WARN", "⚠ Nhân vật đang tải hoặc chưa sẵn sàng!")
-                end
-                CPHub:Debug("SUCCESS", "✓ Kiểm tra hoàn tất: Toàn bộ Module hoạt động ổn định!")
-            end)
-
-            AddCreamButton(lCol, "📊 Xuất File Dữ Liệu (CPHub_Dump.txt)", function()
-                pcall(function()
-                    if writefile then
-                        writefile("CPHub_Dump.txt", table.concat(CPHub.Logs, "\n"))
-                        CPHub:Debug("SUCCESS", "Đã xuất dữ liệu ra tệp CPHub_Dump.txt!")
-                    end
-                end)
-            end)
 
             -- Right Column: Live Terminal Stream Window
             AddSectionDivider(rCol, "Live Terminal Stream (Thời Gian Thực)")
