@@ -91,7 +91,7 @@ local CPHub = {
         FastAttack = true,
         FastAttackSpeed = 0.008,
         AttackReach = 75,
-        FarmHoverHeight = 8,
+        FarmHoverHeight = 28,
         AttackSpeed = 0.008,
         MobBring = true,
         MobBringRadius = 350,
@@ -4593,10 +4593,28 @@ function MasterWebRemoteTelemetryModule.Init()
     print("⚡ (Mã ID đã được tự động sao chép vào Clipboard - Chỉ cần Ctrl+V lên Web!)")
     print("===================================================================")
 
-    local httpReq = request or http_request or (syn and syn.request) or (fluxus and fluxus.request) or (http and type(http) == "table" and http.request)
-    if not httpReq then 
-        CPHub:Debug("WARN", "Executor không hỗ trợ http_request! Vui lòng dùng executor cao cấp.")
-        return 
+    local function UniversalHttpRequest(tbl)
+        local targetUrl = tbl.Url or tbl.url
+        local targetMethod = tbl.Method or tbl.method or "GET"
+        local targetHeaders = tbl.Headers or tbl.headers or { ["Content-Type"] = "application/json" }
+        local targetBody = tbl.Body or tbl.body
+
+        local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request) or (http and type(http) == "table" and http.request)
+        if not reqFunc then return false, nil end
+
+        local payload = {
+            Url = targetUrl,
+            url = targetUrl,
+            Method = targetMethod,
+            method = targetMethod,
+            Headers = targetHeaders,
+            headers = targetHeaders,
+            Body = targetBody,
+            body = targetBody
+        }
+
+        local success, res = pcall(function() return reqFunc(payload) end)
+        return success, res
     end
 
     local cleanKey = string.gsub(tostring(CPHub.PairingKey), "[^%w%-_]", "")
@@ -4682,11 +4700,11 @@ function MasterWebRemoteTelemetryModule.Init()
 
                 local jsonBody = HttpService:JSONEncode(payload)
 
-                httpReq({
+                UniversalHttpRequest({
                     Url = "https://ntfy.sh/" .. telemetryTopic,
                     Method = "POST",
                     Headers = { 
-                        ["Content-Type"] = "application/json",
+                        ["Content-Type"] = "text/plain",
                         ["Title"] = "CP Hub Telemetry"
                     },
                     Body = jsonBody
@@ -4699,12 +4717,12 @@ function MasterWebRemoteTelemetryModule.Init()
     task.spawn(function()
         while task.wait(1.5) do
             pcall(function()
-                local res = httpReq({
+                local ok, res = UniversalHttpRequest({
                     Url = "https://ntfy.sh/" .. cmdTopic .. "/json?poll=1&since=latest",
                     Method = "GET"
                 })
 
-                if res and res.Body and res.Body ~= "" then
+                if ok and res and res.Body and res.Body ~= "" then
                     for line in string.gmatch(res.Body, "[^\r\n]+") do
                         local success, parsed = pcall(function() return HttpService:JSONDecode(line) end)
                         if success and parsed then
@@ -4897,11 +4915,11 @@ function MasterStealthModule.Init()
 
                     if nearStranger then
                         CPHub.Config.FastAttackSpeed = 0.15
-                        CPHub.Config.FarmHoverHeight = 3
+                        CPHub.Config.FarmHoverHeight = 22
                         CPHub:SetAction("🛡️ [Stealth Shield] Phát hiện người chơi lạ gần (Né Report)", "Giảm tốc độ Human-like")
                     else
                         CPHub.Config.FastAttackSpeed = 0.008
-                        CPHub.Config.FarmHoverHeight = 8
+                        CPHub.Config.FarmHoverHeight = 28
                     end
                 end)
             end
