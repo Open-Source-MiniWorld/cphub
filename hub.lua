@@ -90,7 +90,8 @@ local CPHub = {
         SelectFarmMode = "Level", -- "Level", "Bone", "Cake Prince", "Dough King", "Kitsune Ember"
         FastAttack = true,
         FastAttackSpeed = 0.015,
-        AttackReach = 60,
+        AttackReach = 65,
+        FarmHoverHeight = 8,
         AttackSpeed = 0.01,
         MobBring = true,
         MobBringRadius = 350,
@@ -906,7 +907,7 @@ end
 
 local FastAttackModule = {}
 function FastAttackModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Fast Attack Engine 2 Cong An Toan...")
+    CPHub:Debug("INFO", "Khoi chay Fast Attack V4 Multi-Hit Batched Engine...")
     task.spawn(function()
         local Net = nil
         local RegisterHit = nil
@@ -922,38 +923,44 @@ function FastAttackModule.Init()
             end
         end)
 
-        while task.wait(tonumber(CPHub.Config.FastAttackSpeed) or tonumber(CPHub.Config.AttackSpeed) or 0.015) do
+        while task.wait(tonumber(CPHub.Config.FastAttackSpeed) or 0.015) do
             if CPHub.Config.FastAttack and (CPHub.Config.AutoFarm or CPHub.Config.AutoFarmBoss or CPHub.Config.AutoRaid or CPHub.Config.AutoFarmMaterial or CPHub.Config.AutoSeaBeast or CPHub.Config.AutoTerrorShark or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun) then
                 pcall(function()
                     local char = LocalPlayer.Character
                     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
                     local hrp = char.HumanoidRootPart
-                    local tool = weaponSc(CPHub.Config.SelectWeapon)
+                    local tool = char:FindFirstChildOfClass("Tool") or weaponSc(CPHub.Config.SelectWeapon)
                     if not tool then return end
                     
-                    local attackReach = tonumber(CPHub.Config.AttackReach) or 60
+                    local attackReach = 65
                     local attackId = tostring(LocalPlayer.UserId):sub(2, 4) .. tostring(os.clock()):sub(1, 5)
-                    local attackFired = false
-                    local Enemies = Workspace:FindFirstChild("Enemies")
-                    if Enemies then
-                        for _, mob in ipairs(Enemies:GetChildren()) do
+                    local hits = {}
+                    local primaryHRP = nil
+
+                    local enemies = Workspace:FindFirstChild("Enemies")
+                    if enemies then
+                        for _, mob in ipairs(enemies:GetChildren()) do
                             local mobHRP = mob:FindFirstChild("HumanoidRootPart")
                             local mobHum = mob:FindFirstChild("Humanoid")
                             if mobHRP and mobHum and mobHum.Health > 0 then
                                 if (mobHRP.Position - hrp.Position).Magnitude <= attackReach then
-                                    if RegisterAttack and not attackFired then
-                                        pcall(function() RegisterAttack:FireServer() end)
-                                        attackFired = true
-                                    end
-                                    if RegisterHit then
-                                        pcall(function() RegisterHit:FireServer(mobHRP, { { mob, mobHRP } }, nil, nil, attackId) end)
-                                    else
-                                        pcall(function() tool:Activate() end)
-                                    end
+                                    table.insert(hits, { mob, mobHRP })
+                                    if not primaryHRP then primaryHRP = mobHRP end
+                                    if #hits >= 12 then break end
                                 end
                             end
                         end
                     end
+
+                    if #hits > 0 and primaryHRP then
+                        if RegisterAttack then
+                            pcall(function() RegisterAttack:FireServer() end)
+                        end
+                        if RegisterHit then
+                            pcall(function() RegisterHit:FireServer(primaryHRP, hits, nil, nil, attackId) end)
+                        end
+                    end
+                    pcall(function() tool:Activate() end)
                 end)
             end
         end
@@ -1117,8 +1124,8 @@ function FarmEngineModule.Init()
                                 PosMon = mobHRP.Position
                                 BringEnemy(mobHRP.Position, mobData.MobName)
                                 local tool = weaponSc(CPHub.Config.SelectWeapon)
-                                local reach = tonumber(CPHub.Config.AttackReach) or 18
-                                local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
+                                local hoverHeight = tonumber(CPHub.Config.FarmHoverHeight) or 8
+                                local farmCF = (mobHRP.CFrame * CFrame.new(0, hoverHeight, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
                                 CPHub:SetAction("Đang lơ lửng đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
                                 SmoothTweenTo(farmCF)
                             else
@@ -3466,8 +3473,8 @@ function MasterKaitunModule.Init()
                             PosMon = mobHRP.Position
                             BringEnemy(mobHRP.Position, mobData.MobName)
                             local tool = weaponSc(CPHub.Config.SelectWeapon)
-                            local reach = tonumber(CPHub.Config.AttackReach) or 18
-                            local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
+                            local hoverHeight = tonumber(CPHub.Config.FarmHoverHeight) or 8
+                            local farmCF = (mobHRP.CFrame * CFrame.new(0, hoverHeight, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
                             CPHub:SetAction("Đang lơ lửng đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
                             SmoothTweenTo(farmCF)
                         else
@@ -5418,9 +5425,8 @@ local function CreateNativeUI()
         CPHub.Config.SuperKaitunUnlockSixRacesV4 = v
         MasterConfigModule.Save()
     end)
-    AddSlider(Left1, "Độ Cao Lơ Lửng Trên Đầu Quái", 10, 35, 18, "studs", function(v)
+    AddSlider(Left1, "Độ Cao Lơ Lửng Trên Đầu Quái", 4, 20, 8, "studs", function(v)
         CPHub.Config.FarmHoverHeight = v
-        CPHub.Config.AttackReach = v
         MasterConfigModule.Save()
     end)
     AddSlider(Left1, "Mục Tiêu Beli Tích Lũy", 100, 1000, 1000, "M Beli", function(v)
