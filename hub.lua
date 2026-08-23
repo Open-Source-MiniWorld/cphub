@@ -103,6 +103,12 @@ local CPHub = {
         BountyDetectRadius = 250,
         BountyBypassSkillRotation = true,
         
+        -- Low HP Escape & Bounty Protection
+        AutoEscapeLowHP = true,
+        LowHPThreshold = 25,
+        AutoResetLowHP = true,
+        SafeEscapeHeight = 2500,
+        
         -- Haki Engine Options
         AutoBuso = true,  -- Auto Turn On Buso Haki (Armament)
         AutoKen = true,   -- Auto Turn On Observation Haki (Ken)
@@ -4291,6 +4297,49 @@ function MasterAntiBanAndSecurityModule.Init()
             CPHub:Debug("INFO", "Anti-AFK: Đã gửi tín hiệu chống văng sau 20 phút!")
         end)
     end)
+
+    -- Loop 4: Low HP Auto Sky Escape & Bounty Loss Protection Engine
+    task.spawn(function()
+        local isEscaping = false
+        while task.wait(0.25) do
+            if CPHub.Config.AutoEscapeLowHP then
+                pcall(function()
+                    local char = LocalPlayer.Character
+                    local hum = char and char:FindFirstChild("Humanoid")
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    if not hum or not hrp then return end
+
+                    local threshold = (tonumber(CPHub.Config.LowHPThreshold) or 25) / 100
+                    if hum.Health > 0 and hum.Health < hum.MaxHealth * threshold then
+                        if not isEscaping then
+                            isEscaping = true
+                            CPHub:SetAction("⚠️ [Máu Dưới 25%] Đang bay lên không trung 2500m & Reset né mất Bounty!", "Bảo vệ Bounty")
+                            
+                            -- Bay lên độ cao an toàn (2500 studs)
+                            local safeHeight = tonumber(CPHub.Config.SafeEscapeHeight) or 2500
+                            local safeCF = CFrame.new(hrp.Position.X, safeHeight, hrp.Position.Z)
+                            SmoothTweenTo(safeCF, 450)
+                            
+                            task.wait(3.5)
+                            
+                            -- Tự động Reset nhân vật để hồi phục 100% HP mà không mất Bounty
+                            if CPHub.Config.AutoResetLowHP and hum.Health > 0 and hum.Health < hum.MaxHealth * 0.4 then
+                                pcall(function()
+                                    char:BreakJoints()
+                                    hum.Health = 0
+                                end)
+                                CPHub:SetAction("🔄 Đã Reset an toàn! Hồi sinh 100% HP tại đảo", "Bảo toàn Bounty thành công")
+                                task.wait(5)
+                            end
+                            isEscaping = false
+                        end
+                    else
+                        isEscaping = false
+                    end
+                end)
+            end
+        end
+    end)
 end
 
 -- ============================================================================
@@ -4431,6 +4480,182 @@ function MasterDiscordWebhookModule.Init()
 end
 
 -- ============================================================================
+-- 34. MASTER REAL-TIME WEB DASHBOARD & 2-WAY REMOTE CONTROL ENGINE
+-- ============================================================================
+
+local MasterWebRemoteTelemetryModule = {
+    LastCommandTimestamp = 0
+}
+
+function MasterWebRemoteTelemetryModule.Init()
+    -- Khởi tạo Pairing Key duy nhất cho Acc
+    if not CPHub.Config.PairingKey or CPHub.Config.PairingKey == "" then
+        local shortId = string.sub(tostring(LocalPlayer.UserId), -4)
+        local randomCode = string.upper(string.sub(HttpService:GenerateGUID(false), 1, 4))
+        CPHub.Config.PairingKey = "CP-" .. shortId .. "-" .. randomCode
+        MasterConfigModule.Save()
+    end
+    CPHub.PairingKey = CPHub.Config.PairingKey
+
+    CPHub:Debug("SUCCESS", "⚡ [Web Cloud Dashboard] Mã ID kết nối Web của bạn: " .. tostring(CPHub.PairingKey))
+
+    local httpReq = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
+    if not httpReq then 
+        CPHub:Debug("WARN", "Executor không hỗ trợ http_request! Vui lòng dùng executor cao cấp.")
+        return 
+    end
+
+    local cleanKey = string.gsub(tostring(CPHub.PairingKey), "[^%w%-_]", "")
+    local telemetryTopic = "cp_telemetry_" .. cleanKey
+    local cmdTopic = "cp_cmd_" .. cleanKey
+
+    -- Luồng 1: Bắn dữ liệu Telemetry trực tiếp lên Web Dashboard (mỗi 2.5 giây)
+    task.spawn(function()
+        local currentFps = 60
+        local frameCount = 0
+        local lastFpsCheck = os.clock()
+        RunService.RenderStepped:Connect(function()
+            frameCount = frameCount + 1
+            if os.clock() - lastFpsCheck >= 1 then
+                currentFps = frameCount
+                frameCount = 0
+                lastFpsCheck = os.clock()
+            end
+        end)
+
+        while task.wait(2.5) do
+            pcall(function()
+                local data = LocalPlayer:FindFirstChild("Data")
+                local level = data and data:FindFirstChild("Level") and data.Level.Value or 1
+                local beli = data and data:FindFirstChild("Beli") and data.Beli.Value or 0
+                local frags = data and data:FindFirstChild("Fragments") and data.Fragments.Value or 0
+                local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+                local bounty = leaderstats and (leaderstats:FindFirstChild("Bounty/Honor") or leaderstats:FindFirstChild("Bounty"))
+                local bountyVal = bounty and bounty.Value or 0
+                local char = LocalPlayer.Character
+                local hum = char and char:FindFirstChild("Humanoid")
+                local currentHp = hum and math.floor(hum.Health) or 100
+                local maxHp = hum and math.floor(hum.MaxHealth) or 100
+
+                local ping = 40
+                pcall(function()
+                    local stats = game:GetService("Stats")
+                    ping = math.floor(stats.PerformanceStats.Ping:GetValue())
+                end)
+
+                local questData = GetCurrentQuestData()
+                local currentIsland = questData and questData.FullName or ("Sea " .. tostring(CPHub.Config.KaitunCurrentSea or 1))
+
+                local payload = {
+                    userId = LocalPlayer.UserId,
+                    username = LocalPlayer.Name,
+                    displayName = LocalPlayer.DisplayName,
+                    level = level,
+                    maxLevel = 2550,
+                    beli = beli,
+                    fragments = frags,
+                    bounty = bountyVal,
+                    health = currentHp,
+                    maxHealth = maxHp,
+                    sea = CPHub.Config.KaitunCurrentSea or 1,
+                    island = currentIsland,
+                    currentAction = tostring(CPHub.CurrentAction or "Đang chạy CP Hub..."),
+                    currentTarget = tostring(CPHub.CurrentTarget or "Chưa có mục tiêu"),
+                    farmMode = tostring(CPHub.Config.SelectFarmMode or "Level"),
+                    weapon = tostring(CPHub.Config.SelectWeapon or "Melee"),
+                    fastAttack = CPHub.Config.FastAttack or false,
+                    superKaitun = CPHub.Config.SuperKaitun or false,
+                    autoBounty = CPHub.Config.AutoBounty or false,
+                    fps = currentFps,
+                    ping = ping,
+                    timestamp = os.time()
+                }
+
+                local jsonBody = HttpService:JSONEncode(payload)
+
+                httpReq({
+                    Url = "https://ntfy.sh/" .. telemetryTopic,
+                    Method = "POST",
+                    Headers = { 
+                        ["Content-Type"] = "application/json",
+                        ["Title"] = "CP Hub Telemetry"
+                    },
+                    Body = jsonBody
+                })
+            end)
+        end
+    end)
+
+    -- Luồng 2: Nhận & Thực Thi Lệnh Điều Khiển 2 Chiều Từ Web Dashboard (mỗi 1.5 giây)
+    task.spawn(function()
+        while task.wait(1.5) do
+            pcall(function()
+                local res = httpReq({
+                    Url = "https://ntfy.sh/" .. cmdTopic .. "/json?poll=1&since=latest",
+                    Method = "GET"
+                })
+
+                if res and res.Body and res.Body ~= "" then
+                    for line in string.gmatch(res.Body, "[^\r\n]+") do
+                        local success, parsed = pcall(function() return HttpService:JSONDecode(line) end)
+                        if success and parsed then
+                            local msgObj = parsed
+                            if parsed.message then
+                                local subSuccess, subParsed = pcall(function() return HttpService:JSONDecode(parsed.message) end)
+                                if subSuccess and subParsed then msgObj = subParsed end
+                            end
+
+                            local cmdTime = tonumber(msgObj.timestamp) or 0
+                            if cmdTime > MasterWebRemoteTelemetryModule.LastCommandTimestamp then
+                                MasterWebRemoteTelemetryModule.LastCommandTimestamp = cmdTime
+                                local action = msgObj.action
+                                local val = msgObj.value
+
+                                if action == "SetFarmMode" then
+                                    CPHub.Config.SelectFarmMode = val
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Chuyển sang Farm " .. tostring(val), "Remote Control")
+                                    MasterConfigModule.Save()
+                                elseif action == "SetWeapon" then
+                                    CPHub.Config.SelectWeapon = val
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đổi vũ khí sang " .. tostring(val), "Remote Control")
+                                    weaponSc(val)
+                                    MasterConfigModule.Save()
+                                elseif action == "ToggleSuperKaitun" then
+                                    CPHub.Config.SuperKaitun = val
+                                    CPHub.Config.AutoKaitun = val
+                                    CPHub.Config.AutoFarm = val
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Super Kaitun" or "TẮT Super Kaitun"), "Remote Control")
+                                    MasterConfigModule.Save()
+                                elseif action == "ToggleFastAttack" then
+                                    CPHub.Config.FastAttack = val
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Fast Attack" or "TẮT Fast Attack"), "Remote Control")
+                                    MasterConfigModule.Save()
+                                elseif action == "ToggleAutoBounty" then
+                                    CPHub.Config.AutoBounty = val
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Auto Bounty" or "TẮT Auto Bounty"), "Remote Control")
+                                    MasterConfigModule.Save()
+                                elseif action == "HopServer" then
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đang đổi Server mới...", "Remote Control")
+                                    pcall(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
+                                elseif action == "ResetCharacter" then
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đang Reset nhân vật...", "Remote Control")
+                                    pcall(function() if LocalPlayer.Character then LocalPlayer.Character:BreakJoints() end end)
+                                elseif action == "EscapeSky" then
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đang bay lên 2500m trốn đòn...", "Remote Control")
+                                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                                        SmoothTweenTo(LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2500, 0), 450)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+-- ============================================================================
 -- 34. MASTER KITSUNE ISLAND & AZURE EMBER SWEPPER PRO ENGINE
 -- ============================================================================
 
@@ -4534,6 +4759,7 @@ MasterAntiBanAndSecurityModule.Init()
 MasterKaitunTelemetryModule.Init()
 MasterSuperKaitunModule.Init()
 MasterDiscordWebhookModule.Init()
+MasterWebRemoteTelemetryModule.Init()
 MasterKitsuneIslandModule.Init()
 MasterLeviathanHunterModule.Init()
 MasterAutoCodeModule.Init()
@@ -5695,6 +5921,14 @@ local function CreateNativeUI()
         CPHub.Config.BountyBypassSkillRotation = v
         MasterConfigModule.Save()
     end)
+    AddCheckbox(Right2, "🛡️ Máu < 25% Tự Bay Lên 2500m Né Mất Bounty", CPHub.Config.AutoEscapeLowHP, function(v)
+        CPHub.Config.AutoEscapeLowHP = v
+        MasterConfigModule.Save()
+    end)
+    AddCheckbox(Right2, "🔄 Tự Reset Sau Khi Bay Cao (Hồi 100% HP)", CPHub.Config.AutoResetLowHP, function(v)
+        CPHub.Config.AutoResetLowHP = v
+        MasterConfigModule.Save()
+    end)
 
     AddSectionDivider(Right2, "🎯 FARM MASTERY & SKILL SPAMMER")
     AddCheckbox(Right2, "Khóa Điểm Farm Mastery Vũ Khí", CPHub.Config.StartLockMastery, function(v) CPHub.Config.StartLockMastery = v end)
@@ -6087,6 +6321,27 @@ local function CreateNativeUI()
                         CPHub:Debug("SUCCESS", "Đã xuất dữ liệu ra tệp CPHub_Dump.txt!")
                     end
                 end)
+            end)
+
+            AddSectionDivider(lCol, "🌐 WEB DASHBOARD & REMOTE CONTROL")
+            AddCreamButton(lCol, "📋 SAO CHÉP MÃ ID KẾT NỐI WEB", function()
+                pcall(function()
+                    local key = tostring(CPHub.PairingKey or CPHub.Config.PairingKey or "CP-DEMO")
+                    if setclipboard then
+                        setclipboard(key)
+                        CPHub:Debug("SUCCESS", "Đã sao chép Mã ID Web: " .. key .. " vào Clipboard!")
+                    else
+                        CPHub:Debug("INFO", "Mã ID Web của bạn là: " .. key)
+                    end
+                end)
+            end)
+            AddCreamButton(lCol, "🔄 TẠO MÃ ID KẾT NỐI MỚI", function()
+                local shortId = string.sub(tostring(LocalPlayer.UserId), -4)
+                local randomCode = string.upper(string.sub(HttpService:GenerateGUID(false), 1, 4))
+                CPHub.Config.PairingKey = "CP-" .. shortId .. "-" .. randomCode
+                CPHub.PairingKey = CPHub.Config.PairingKey
+                MasterConfigModule.Save()
+                CPHub:Debug("SUCCESS", "Đã tạo Mã ID Web mới: " .. tostring(CPHub.PairingKey))
             end)
 
             AddSectionDivider(rCol, "Server Hop & System Tools")
