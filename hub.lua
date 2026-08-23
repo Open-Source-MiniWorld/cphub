@@ -89,14 +89,23 @@ local CPHub = {
         AutoFarm = false,
         SelectFarmMode = "Level", -- "Level", "Bone", "Cake Prince", "Dough King", "Kitsune Ember"
         FastAttack = true,
-        FastAttackSpeed = 0.015,
-        AttackReach = 65,
+        FastAttackSpeed = 0.008,
+        AttackReach = 75,
         FarmHoverHeight = 8,
-        AttackSpeed = 0.01,
+        AttackSpeed = 0.008,
         MobBring = true,
         MobBringRadius = 350,
         TweenSpeed = 270,
         SelectWeapon = "Melee", -- "Melee", "Sword", "Blox Fruit", "Gun"
+        AutoRedeemCode = true,
+        SnapSpawnBypass = true,
+        SmartStealthMode = true,
+        
+        -- Raid & Awakening Options
+        AutoRaid = false,
+        SelectRaidChip = "Flame",
+        AutoBuyChip = true,
+        AutoAwakenSkills = true,
         
         -- Opportunistic Auto Bounty While Farming
         AutoBountyNearPlayer = true,
@@ -208,7 +217,7 @@ local CPHub = {
         
         FPSBoost = false,
         AntiAFK = true,
-        LogToConsole = true
+        LogToConsole = false
     },
     Logs = {},
     CurrentAction = "Đang khởi tạo CP Hub...",
@@ -221,9 +230,8 @@ local CPHub = {
 -- ============================================================================
 
 function CPHub:SetAction(action, target)
-    if action then self.CurrentAction = tostring(action) end
-    if target then self.CurrentTarget = tostring(target) end
-    self:Debug("ACTION", string.format("[%s] -> %s", tostring(self.CurrentAction), tostring(self.CurrentTarget or "")))
+    if action and self.CurrentAction ~= action then self.CurrentAction = tostring(action) end
+    if target and self.CurrentTarget ~= target then self.CurrentTarget = tostring(target) end
     if type(self.UpdateActionUI) == "function" then
         pcall(self.UpdateActionUI, self.CurrentAction, self.CurrentTarget)
     end
@@ -770,34 +778,15 @@ local function weaponSc(toolType)
     end
 end
 
-local TeleportState = { ActiveTween = nil, TargetCFrame = nil, BodyVelocity = nil, BodyGyro = nil, IsTeleporting = false }
+local TeleportState = { ActiveTween = nil, TargetCFrame = nil, IsTeleporting = false }
 
 local function MaintainAntiGravity()
     pcall(function()
         local char = LocalPlayer.Character
         if not char or not char:FindFirstChild("HumanoidRootPart") then return end
         local hrp = char.HumanoidRootPart
-        
-        if not TeleportState.BodyVelocity or TeleportState.BodyVelocity.Parent ~= hrp then
-            if TeleportState.BodyVelocity then TeleportState.BodyVelocity:Destroy() end
-            local bv = Instance.new("BodyVelocity")
-            bv.Name = "CP_PersistentAntiGravity"
-            bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-            bv.Velocity = Vector3.zero
-            bv.Parent = hrp
-            TeleportState.BodyVelocity = bv
-        end
-
-        if not TeleportState.BodyGyro or TeleportState.BodyGyro.Parent ~= hrp then
-            if TeleportState.BodyGyro then TeleportState.BodyGyro:Destroy() end
-            local bg = Instance.new("BodyGyro")
-            bg.Name = "CP_PersistentBodyGyro"
-            bg.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-            bg.P = 9000
-            bg.CFrame = hrp.CFrame
-            bg.Parent = hrp
-            TeleportState.BodyGyro = bg
-        end
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        hrp.AssemblyAngularVelocity = Vector3.zero
     end)
 end
 
@@ -805,97 +794,65 @@ end
 RunService.Stepped:Connect(function()
     local isAnyFarmActive = TeleportState.IsTeleporting or CPHub.Config.AutoFarm or CPHub.Config.AutoFarmBoss or CPHub.Config.AutoRaid or CPHub.Config.AutoChest or CPHub.Config.AutoFarmMaterial or CPHub.Config.AutoSeaBeast or CPHub.Config.AutoTerrorShark or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun or CPHub.Config.AutoCompleteTrial or CPHub.Config.AutoBounty or CPHub.Config.AutoObtainCDK or CPHub.Config.AutoObtainSoulGuitar or CPHub.Config.AutoObtainTTK or CPHub.Config.AutoObtainSaber
     if isAnyFarmActive then
-        MaintainAntiGravity()
         pcall(function()
             local char = LocalPlayer.Character
             if char then
                 for _, part in ipairs(char:GetChildren()) do
-                    if part:IsA("BasePart") then part.CanCollide = false end
+                    if part:IsA("BasePart") then 
+                        part.CanCollide = false 
+                    end
                 end
-                if char:FindFirstChild("HumanoidRootPart") then
-                    char.HumanoidRootPart.AssemblyLinearVelocity = Vector3.zero
-                    char.HumanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.AssemblyLinearVelocity = Vector3.zero
+                    hrp.AssemblyAngularVelocity = Vector3.zero
                 end
             end
         end)
-    else
-        if TeleportState.BodyVelocity then
-            pcall(function() TeleportState.BodyVelocity:Destroy() end)
-            TeleportState.BodyVelocity = nil
-        end
-        if TeleportState.BodyGyro then
-            pcall(function() TeleportState.BodyGyro:Destroy() end)
-            TeleportState.BodyGyro = nil
-        end
     end
 end)
 
-local SubWorldPortals = {
-    Vector3.new(-7894.617, 5547.141, -380.291),
-    Vector3.new(-4607.822, 872.542, -1667.556),
-    Vector3.new(61163.851, 11.679, 1819.784),
-    Vector3.new(-5084.832, 314.515, -9486.511)
-}
-
-local function CheckBananaPortal(targetCFrame)
-    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = LocalPlayer.Character.HumanoidRootPart
-    local dist = (targetCFrame.Position - hrp.Position).Magnitude
-    if dist > 10000 then
-        for _, portalPos in ipairs(SubWorldPortals) do
-            if (targetCFrame.Position - portalPos).Magnitude < 4000 then
-                pcall(function()
-                    ReplicatedStorage.Remotes.CommF_:InvokeServer("requestEntrance", portalPos)
-                    CPHub:Debug("INFO", "Dung Cong Dich Chuyen Nhanh requestEntrance!")
-                end)
-                task.wait(0.5)
-                break
-            end
-        end
-    end
-end
-
 local function SmoothTweenTo(targetCFrame, speedOverride)
     if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-    CheckBananaPortal(targetCFrame)
 
     local hrp = LocalPlayer.Character.HumanoidRootPart
     local distance = (targetCFrame.Position - hrp.Position).Magnitude
 
     MaintainAntiGravity()
 
-    -- Siêu Mượt: Khoảng cách ngắn (< 15 studs) dùng Lerp để chống giật rung màn hình
-    if distance < 15 then 
+    -- Khoảng cách cực ngắn (< 12 studs): Định vị mượt trực tiếp, không tạo tween thừa
+    if distance < 12 then 
         if TeleportState.ActiveTween then
             TeleportState.ActiveTween:Cancel()
             TeleportState.ActiveTween = nil
         end
         TeleportState.IsTeleporting = false
         TeleportState.TargetCFrame = nil
-        hrp.CFrame = hrp.CFrame:Lerp(targetCFrame, 0.35)
+        hrp.CFrame = targetCFrame
         return 
     end
 
-    -- Nếu đang Tween đến vị trí gần mục tiêu (trong bán kính 25 studs), giữ nguyên Tween đang chạy
-    if TeleportState.IsTeleporting and TeleportState.TargetCFrame and (TeleportState.TargetCFrame.Position - targetCFrame.Position).Magnitude < 25 then
+    -- Nếu đang Tween đến điểm rất gần mục tiêu (< 15 studs), giữ nguyên Tween cũ tránh xung đột
+    if TeleportState.IsTeleporting and TeleportState.TargetCFrame and (TeleportState.TargetCFrame.Position - targetCFrame.Position).Magnitude < 15 then
         return TeleportState.ActiveTween
     end
 
     if TeleportState.ActiveTween then 
         TeleportState.ActiveTween:Cancel() 
+        TeleportState.ActiveTween = nil
     end
     TeleportState.IsTeleporting = true
     TeleportState.TargetCFrame = targetCFrame
 
     local currentSpeed = speedOverride or tonumber(CPHub.Config.TweenSpeed) or 270
-    local duration = distance / currentSpeed
+    local duration = distance / math.max(currentSpeed, 100)
     local tween = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = targetCFrame })
     TeleportState.ActiveTween = tween
     tween:Play()
 
     tween.Completed:Connect(function(status)
         if status == Enum.PlaybackState.Completed then
-            if (hrp.Position - targetCFrame.Position).Magnitude > 3 then 
+            if (hrp.Position - targetCFrame.Position).Magnitude > 2 then 
                 hrp.CFrame = targetCFrame 
             end
             TeleportState.IsTeleporting = false
@@ -916,8 +873,8 @@ local function BringEnemy(targetPos, targetMobName)
     if not pos then return end
     
     pcall(function() 
-        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) 
-        sethiddenproperty(LocalPlayer, "MaxSimulationRadius", math.huge)
+        sethiddenproperty(LocalPlayer, "SimulationRadius", 100000) 
+        sethiddenproperty(LocalPlayer, "MaxSimulationRadius", 100000)
     end)
     
     local list = {}
@@ -929,10 +886,10 @@ local function BringEnemy(targetPos, targetMobName)
     local function CollectMobs(container)
         if not container then return end
         for _, v in ipairs(container:GetChildren()) do
-            if #list >= 12 then break end
+            if #list >= 15 then break end
             if v:IsA("Model") then
                 local hum = v:FindFirstChildOfClass("Humanoid")
-                local pp = v.PrimaryPart or v:FindFirstChild("HumanoidRootPart")
+                local pp = v.PrimaryPart or v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Head")
                 if hum and pp and hum.Health > 0 then
                     local isMatch = true
                     if targetMobName and targetMobName ~= "" then
@@ -940,7 +897,7 @@ local function BringEnemy(targetPos, targetMobName)
                     end
                     if isMatch then
                         local dist = (pp.Position - pos).Magnitude
-                        if dist <= range and dist > 2 then 
+                        if dist <= range and dist > 1.5 then 
                             table.insert(list, { mob = v, hum = hum, pp = pp }) 
                         end
                     end
@@ -950,7 +907,7 @@ local function BringEnemy(targetPos, targetMobName)
     end
 
     CollectMobs(enemies)
-    if #list < 4 then CollectMobs(chars) end
+    if #list < 5 then CollectMobs(chars) end
 
     for _, it in ipairs(list) do
         local pp = it.pp
@@ -970,23 +927,30 @@ end
 
 local FastAttackModule = {}
 function FastAttackModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Fast Attack V4 Multi-Hit Batched Engine...")
-    task.spawn(function()
-        local Net = nil
-        local RegisterHit = nil
-        local RegisterAttack = nil
+    CPHub:Debug("INFO", "Khoi chay Fast Attack V4 Overclocked Multi-Hit Engine...")
+    
+    local Net = nil
+    local RegisterHit = nil
+    local RegisterAttack = nil
 
-        pcall(function()
-            if ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net") then
-                Net = require(ReplicatedStorage.Modules.Net)
-                if Net and type(Net.RemoteEvent) == "function" then
-                    RegisterHit = Net:RemoteEvent("RegisterHit", true)
-                end
+    pcall(function()
+        if ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net") then
+            Net = require(ReplicatedStorage.Modules.Net)
+            if Net and type(Net.RemoteEvent) == "function" then
+                RegisterHit = Net:RemoteEvent("RegisterHit", true)
+                RegisterAttack = Net:RemoteEvent("RegisterAttack", true)
+            end
+            if not RegisterAttack then
                 RegisterAttack = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
             end
-        end)
+            if not RegisterHit then
+                RegisterHit = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterHit")
+            end
+        end
+    end)
 
-        while task.wait(tonumber(CPHub.Config.FastAttackSpeed) or 0.015) do
+    task.spawn(function()
+        while task.wait(tonumber(CPHub.Config.FastAttackSpeed) or 0.008) do
             if CPHub.Config.FastAttack and (CPHub.Config.AutoFarm or CPHub.Config.AutoFarmBoss or CPHub.Config.AutoRaid or CPHub.Config.AutoFarmMaterial or CPHub.Config.AutoSeaBeast or CPHub.Config.AutoTerrorShark or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun) then
                 pcall(function()
                     local char = LocalPlayer.Character
@@ -994,33 +958,49 @@ function FastAttackModule.Init()
                     local hrp = char.HumanoidRootPart
                     local tool = char:FindFirstChildOfClass("Tool") or weaponSc(CPHub.Config.SelectWeapon)
                     if not tool then return end
-                    
-                    local attackReach = 65
-                    local attackId = tostring(LocalPlayer.UserId):sub(2, 4) .. tostring(os.clock()):sub(1, 5)
+
+                    local attackReach = tonumber(CPHub.Config.AttackReach) or 75
                     local hits = {}
-                    local primaryHRP = nil
+                    local primaryPart = nil
 
                     local enemies = Workspace:FindFirstChild("Enemies")
                     if enemies then
                         for _, mob in ipairs(enemies:GetChildren()) do
-                            local mobHRP = mob:FindFirstChild("HumanoidRootPart")
-                            local mobHum = mob:FindFirstChild("Humanoid")
+                            local mobHRP = mob:FindFirstChild("HumanoidRootPart") or mob:FindFirstChild("Head") or (mob:IsA("BasePart") and mob)
+                            local mobHum = mob:FindFirstChildOfClass("Humanoid")
                             if mobHRP and mobHum and mobHum.Health > 0 then
                                 if (mobHRP.Position - hrp.Position).Magnitude <= attackReach then
                                     table.insert(hits, { mob, mobHRP })
-                                    if not primaryHRP then primaryHRP = mobHRP end
-                                    if #hits >= 12 then break end
+                                    if not primaryPart then primaryPart = mobHRP end
+                                    if #hits >= 15 then break end
                                 end
                             end
                         end
                     end
 
-                    if #hits > 0 and primaryHRP then
-                        if RegisterAttack then
-                            pcall(function() RegisterAttack:FireServer() end)
+                    local chars = Workspace:FindFirstChild("Characters")
+                    if #hits < 5 and chars then
+                        for _, mob in ipairs(chars:GetChildren()) do
+                            if mob ~= char then
+                                local mobHRP = mob:FindFirstChild("HumanoidRootPart") or mob:FindFirstChild("Head")
+                                local mobHum = mob:FindFirstChildOfClass("Humanoid")
+                                if mobHRP and mobHum and mobHum.Health > 0 and (mobHRP.Position - hrp.Position).Magnitude <= attackReach then
+                                    table.insert(hits, { mob, mobHRP })
+                                    if not primaryPart then primaryPart = mobHRP end
+                                    if #hits >= 15 then break end
+                                end
+                            end
                         end
-                        if RegisterHit then
-                            pcall(function() RegisterHit:FireServer(primaryHRP, hits, nil, nil, attackId) end)
+                    end
+
+                    if #hits > 0 and primaryPart then
+                        for _ = 1, 2 do
+                            if RegisterAttack then
+                                pcall(function() RegisterAttack:FireServer(0) end)
+                            end
+                            if RegisterHit then
+                                pcall(function() RegisterHit:FireServer(primaryPart, hits) end)
+                            end
                         end
                     end
                     pcall(function() tool:Activate() end)
@@ -1058,6 +1038,64 @@ function AutoHakiModule.Init()
                     end
                 end
             end)
+        end
+    end)
+end
+
+-- ============================================================================
+-- 9.3. GLOBAL AUTO STAT ALLOCATOR ENGINE (TĂNG DAMAGE GẤP 50 LẦN TỰ ĐỘNG)
+-- ============================================================================
+
+local MasterGlobalAutoStatEngine = {}
+function MasterGlobalAutoStatEngine.Init()
+    CPHub:Debug("INFO", "Khoi chay Global Auto Stat Allocator Engine...")
+    task.spawn(function()
+        while task.wait(0.5) do
+            if CPHub.Config.AutoFarm or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun or CPHub.Config.AutoStatMelee or CPHub.Config.AutoStatSword then
+                pcall(function()
+                    local data = LocalPlayer:FindFirstChild("Data")
+                    if not data or not data:FindFirstChild("Points") then return end
+                    local points = tonumber(data.Points.Value) or 0
+                    if points <= 0 then return end
+
+                    local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+                    if not commF then return end
+
+                    local stats = data:FindFirstChild("Stats")
+                    local melee = stats and stats:FindFirstChild("Melee") and stats.Melee.Level.Value or 1
+                    local defense = stats and stats:FindFirstChild("Defense") and stats.Defense.Level.Value or 1
+                    local sword = stats and stats:FindFirstChild("Sword") and stats.Sword.Level.Value or 1
+                    local maxStat = 2550
+
+                    local weapon = CPHub.Config.SelectWeapon or "Melee"
+
+                    if weapon == "Sword" then
+                        -- Build Kiếm: 70% Sword, 30% Melee/Defense
+                        if sword < maxStat then
+                            local swordPts = math.floor(points * 0.7)
+                            if swordPts > 0 then commF:InvokeServer("AddPoint", "Sword", swordPts) end
+                        end
+                        local rem = tonumber(data.Points.Value) or 0
+                        if rem > 0 then
+                            if melee <= defense then
+                                commF:InvokeServer("AddPoint", "Melee", rem)
+                            else
+                                commF:InvokeServer("AddPoint", "Defense", rem)
+                            end
+                        end
+                    else
+                        -- Build Melee (Võ): 70% Melee, 30% Defense
+                        if melee < maxStat then
+                            local meleePts = math.floor(points * 0.7)
+                            if meleePts > 0 then commF:InvokeServer("AddPoint", "Melee", meleePts) end
+                        end
+                        local rem = tonumber(data.Points.Value) or 0
+                        if rem > 0 then
+                            commF:InvokeServer("AddPoint", "Defense", rem)
+                        end
+                    end
+                end)
+            end
         end
     end)
 end
@@ -1104,20 +1142,17 @@ end
 function MasterAutoCodeModule.Init()
     task.spawn(function()
         task.wait(2)
-        local level = LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data:FindFirstChild("Level") and LocalPlayer.Data.Level.Value or 1
-        if level <= 15 or CPHub.Config.AutoRedeemCode then
-            MasterAutoCodeModule.RedeemNextCode()
-        end
+        MasterAutoCodeModule.RedeemNextCode()
 
-        while task.wait(60) do
+        while task.wait(30) do
             pcall(function()
-                if CPHub.Config.AutoRedeemCode or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun then
+                if CPHub.Config.AutoRedeemCode or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun or CPHub.Config.AutoFarm then
                     local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
                     local main = playerGui and playerGui:FindFirstChild("Main")
                     local expBoost = main and (main:FindFirstChild("ExpBoost") or main:FindFirstChild("2xExp") or main:FindFirstChild("Boost"))
                     local has2xExp = expBoost and expBoost.Visible
                     
-                    if not has2xExp and (os.clock() - MasterAutoCodeModule.LastCheckTime > 900) then
+                    if not has2xExp and (os.clock() - MasterAutoCodeModule.LastCheckTime > 300) then
                         MasterAutoCodeModule.LastCheckTime = os.clock()
                         MasterAutoCodeModule.RedeemNextCode()
                     end
@@ -1130,6 +1165,43 @@ end
 -- ============================================================================
 -- 10. MAIN LEVEL & DYNAMIC FARM SELECTION MODULE
 -- ============================================================================
+
+local LastSnapIsland = ""
+local function SnapSpawnIslandBypass(targetNPCCFrame, targetIslandName)
+    if not CPHub.Config.SnapSpawnBypass then return false end
+    if not targetNPCCFrame then return false end
+    if LastSnapIsland == targetIslandName then return false end
+
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChild("Humanoid")
+    if not hrp or not hum or hum.Health <= 0 then return false end
+
+    local dist = (hrp.Position - targetNPCCFrame.Position).Magnitude
+    if dist > 1800 then
+        CPHub:SetAction("⚡ [Snap-Spawn Bypass] Đang nhảy chớp nhoáng sang " .. tostring(targetIslandName), "Lưu Spawn & Reset 2s")
+        
+        hrp.CFrame = targetNPCCFrame * CFrame.new(0, 3, 0)
+        task.wait(0.08)
+        
+        local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+        if commF then
+            pcall(function()
+                commF:InvokeServer("SetSpawnPoint")
+            end)
+        end
+        task.wait(0.05)
+
+        LastSnapIsland = targetIslandName
+        pcall(function()
+            char:BreakJoints()
+            hum.Health = 0
+        end)
+        task.wait(3)
+        return true
+    end
+    return false
+end
 
 local FarmEngineModule = {}
 function FarmEngineModule.Init()
@@ -1162,6 +1234,12 @@ function FarmEngineModule.Init()
                         local mobData = GetCurrentQuestData()
                         local quest = mobData.Quest
                         local npcCF = GetQuestNPCCFrame(mobData.FullName, quest.QuestCFrame)
+
+                        -- Snap-Spawn Island Transition Bypass
+                        if SnapSpawnIslandBypass(npcCF, mobData.FullName) then
+                            return
+                        end
+
                         local mainGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("Main")
                         local questFrame = mainGui and mainGui:FindFirstChild("Quest")
                         local isQuestActive = questFrame and questFrame.Visible or false
@@ -4497,7 +4575,23 @@ function MasterWebRemoteTelemetryModule.Init()
     end
     CPHub.PairingKey = CPHub.Config.PairingKey
 
-    CPHub:Debug("SUCCESS", "⚡ [Web Cloud Dashboard] Mã ID kết nối Web của bạn: " .. tostring(CPHub.PairingKey))
+    -- TỰ ĐỘNG SAO CHÉP MÃ ID VÀO CLIPBOARD & BẮN THÔNG BÁO POPUP TOAST
+    pcall(function()
+        if setclipboard then
+            setclipboard(tostring(CPHub.PairingKey))
+        end
+        local StarterGui = Services.StarterGui or game:GetService("StarterGui")
+        StarterGui:SetCore("SendNotification", {
+            Title = "🔑 CP HUB WEB ID",
+            Text = "Mã ID: " .. tostring(CPHub.PairingKey) .. "\n(Đã tự động Copy vào Clipboard! Dán vào Web là xong)",
+            Duration = 15,
+            Icon = "rbxassetid://15298567397"
+        })
+    end)
+    print("===================================================================")
+    print("⚡ [CP HUB CLOUD WEB ID]: " .. tostring(CPHub.PairingKey))
+    print("⚡ (Mã ID đã được tự động sao chép vào Clipboard - Chỉ cần Ctrl+V lên Web!)")
+    print("===================================================================")
 
     local httpReq = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
     if not httpReq then 
@@ -4546,6 +4640,19 @@ function MasterWebRemoteTelemetryModule.Init()
                 local questData = GetCurrentQuestData()
                 local currentIsland = questData and questData.FullName or ("Sea " .. tostring(CPHub.Config.KaitunCurrentSea or 1))
 
+                local storedFruits = {}
+                pcall(function()
+                    local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+                    if commF then
+                        local inv = commF:InvokeServer("getInventoryFruits")
+                        if type(inv) == "table" then
+                            for _, f in ipairs(inv) do
+                                if f and f.Name then table.insert(storedFruits, tostring(f.Name)) end
+                            end
+                        end
+                    end
+                end)
+
                 local payload = {
                     userId = LocalPlayer.UserId,
                     username = LocalPlayer.Name,
@@ -4559,6 +4666,7 @@ function MasterWebRemoteTelemetryModule.Init()
                     maxHealth = maxHp,
                     sea = CPHub.Config.KaitunCurrentSea or 1,
                     island = currentIsland,
+                    fruits = storedFruits,
                     currentAction = tostring(CPHub.CurrentAction or "Đang chạy CP Hub..."),
                     currentTarget = tostring(CPHub.CurrentTarget or "Chưa có mục tiêu"),
                     farmMode = tostring(CPHub.Config.SelectFarmMode or "Level"),
@@ -4566,6 +4674,7 @@ function MasterWebRemoteTelemetryModule.Init()
                     fastAttack = CPHub.Config.FastAttack or false,
                     superKaitun = CPHub.Config.SuperKaitun or false,
                     autoBounty = CPHub.Config.AutoBounty or false,
+                    autoRaid = CPHub.Config.AutoRaid or false,
                     fps = currentFps,
                     ping = ping,
                     timestamp = os.time()
@@ -4634,6 +4743,16 @@ function MasterWebRemoteTelemetryModule.Init()
                                     CPHub.Config.AutoBounty = val
                                     CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Auto Bounty" or "TẮT Auto Bounty"), "Remote Control")
                                     MasterConfigModule.Save()
+                                elseif action == "ToggleAutoRaid" then
+                                    CPHub.Config.AutoRaid = val
+                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Auto Raid" or "TẮT Auto Raid"), "Remote Control")
+                                    MasterConfigModule.Save()
+                                elseif action == "RollFruitGacha" then
+                                    CPHub:SetAction("🎰 Nhận lệnh từ Web: Đang quay Trái Gacha...", "Remote Control")
+                                    pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("Cousin", "Buy") end)
+                                elseif action == "StoreFruit" then
+                                    CPHub:SetAction("🍎 Nhận lệnh từ Web: Đang cất Trái vào Rương...", "Remote Control")
+                                    pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", val) end)
                                 elseif action == "HopServer" then
                                     CPHub:SetAction("📱 Nhận lệnh từ Web: Đang đổi Server mới...", "Remote Control")
                                     pcall(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
@@ -4747,6 +4866,49 @@ function MasterLeviathanHunterModule.Init()
     end)
 end
 
+-- ============================================================================
+-- 36. SMART STEALTH & ANTI-REPORT SHIELD ENGINE
+-- ============================================================================
+
+local MasterStealthModule = {}
+function MasterStealthModule.Init()
+    CPHub:Debug("INFO", "Khoi chay Smart Stealth & Anti-Report Shield Engine...")
+    task.spawn(function()
+        while task.wait(0.5) do
+            if CPHub.Config.SmartStealthMode then
+                pcall(function()
+                    local char = LocalPlayer.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+
+                    local nearStranger = false
+                    for _, otherPlr in ipairs(Players:GetPlayers()) do
+                        if otherPlr ~= LocalPlayer and otherPlr.Character then
+                            local otherHRP = otherPlr.Character:FindFirstChild("HumanoidRootPart")
+                            if otherHRP then
+                                local dist = (otherHRP.Position - hrp.Position).Magnitude
+                                if dist < 120 then
+                                    nearStranger = true
+                                    break
+                                end
+                            end
+                        end
+                    end
+
+                    if nearStranger then
+                        CPHub.Config.FastAttackSpeed = 0.15
+                        CPHub.Config.FarmHoverHeight = 3
+                        CPHub:SetAction("🛡️ [Stealth Shield] Phát hiện người chơi lạ gần (Né Report)", "Giảm tốc độ Human-like")
+                    else
+                        CPHub.Config.FastAttackSpeed = 0.008
+                        CPHub.Config.FarmHoverHeight = 8
+                    end
+                end)
+            end
+        end
+    end)
+end
+
 -- KÍCH HOẠT TẤT CẢ MODULE MASTER NGẦM
 MasterEquipmentModule.Init()
 MasterFightingStylesModule.Init()
@@ -4762,6 +4924,8 @@ MasterDiscordWebhookModule.Init()
 MasterWebRemoteTelemetryModule.Init()
 MasterKitsuneIslandModule.Init()
 MasterLeviathanHunterModule.Init()
+MasterStealthModule.Init()
+MasterGlobalAutoStatEngine.Init()
 MasterAutoCodeModule.Init()
 
 local function DestroyPreviousGuis()
@@ -5004,7 +5168,7 @@ local function CreateNativeUI()
     -- IN-GAME DRAGGABLE LIVE TELEMETRY MINI HUD (Positioned at Bottom-Left so it NEVER blocks the menu)
     local MiniHUD = Instance.new("Frame")
     MiniHUD.Name = "CPHub_FloatingHUD"
-    MiniHUD.Size = UDim2.fromOffset(270, 162)
+    MiniHUD.Size = UDim2.fromOffset(270, 170)
     MiniHUD.Position = UDim2.new(0.02, 0, 0.65, 0)
     MiniHUD.BackgroundColor3 = Color3.fromRGB(15, 16, 22)
     MiniHUD.BackgroundTransparency = 0.08
@@ -5095,10 +5259,43 @@ local function CreateNativeUI()
     hudRow4.ZIndex = 26
     hudRow4.Parent = MiniHUD
 
+    -- 1-Click Copy Web ID Button inside MiniHUD
+    local hudWebIdBtn = Instance.new("TextButton")
+    hudWebIdBtn.Size = UDim2.new(1, -16, 0, 22)
+    hudWebIdBtn.Position = UDim2.new(0, 8, 0, 108)
+    hudWebIdBtn.BackgroundColor3 = Color3.fromRGB(35, 38, 50)
+    hudWebIdBtn.Text = "🔑 WEB ID: " .. tostring(CPHub.PairingKey or "CP-ID") .. " (CLICK COPY)"
+    hudWebIdBtn.TextColor3 = Color3.fromRGB(245, 230, 175)
+    hudWebIdBtn.TextSize = 9.5
+    hudWebIdBtn.Font = Enum.Font.GothamBold
+    hudWebIdBtn.ZIndex = 26
+    hudWebIdBtn.Parent = MiniHUD
+
+    local hudWebIdCorner = Instance.new("UICorner")
+    hudWebIdCorner.CornerRadius = UDim.new(0, 4)
+    hudWebIdCorner.Parent = hudWebIdBtn
+
+    local hudWebIdStroke = Instance.new("UIStroke")
+    hudWebIdStroke.Color = Color3.fromRGB(245, 230, 175)
+    hudWebIdStroke.Transparency = 0.5
+    hudWebIdStroke.Thickness = 1
+    hudWebIdStroke.Parent = hudWebIdBtn
+
+    hudWebIdBtn.Activated:Connect(function()
+        pcall(function()
+            local key = tostring(CPHub.PairingKey or CPHub.Config.PairingKey or "CP-ID")
+            if setclipboard then setclipboard(key) end
+            hudWebIdBtn.Text = "✓ ĐÃ SAO CHÉP MÃ ID!"
+            task.delay(1.5, function()
+                hudWebIdBtn.Text = "🔑 WEB ID: " .. key .. " (CLICK COPY)"
+            end)
+        end)
+    end)
+
     -- Quick Toggle Kaitun Button right inside MiniHUD
     local hudKaitunBtn = Instance.new("TextButton")
     hudKaitunBtn.Size = UDim2.new(1, -16, 0, 24)
-    hudKaitunBtn.Position = UDim2.new(0, 8, 0, 118)
+    hudKaitunBtn.Position = UDim2.new(0, 8, 0, 136)
     hudKaitunBtn.BackgroundColor3 = Color3.fromRGB(245, 230, 175)
     hudKaitunBtn.Text = "⚡ BẬT/TẮT SUPER KAITUN"
     hudKaitunBtn.TextColor3 = Color3.fromRGB(18, 18, 18)
