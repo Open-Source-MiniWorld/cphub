@@ -98,6 +98,11 @@ local CPHub = {
         TweenSpeed = 270,
         SelectWeapon = "Melee", -- "Melee", "Sword", "Blox Fruit", "Gun"
         
+        -- Opportunistic Auto Bounty While Farming
+        AutoBountyNearPlayer = true,
+        BountyDetectRadius = 250,
+        BountyBypassSkillRotation = true,
+        
         -- Haki Engine Options
         AutoBuso = true,  -- Auto Turn On Buso Haki (Armament)
         AutoKen = true,   -- Auto Turn On Observation Haki (Ken)
@@ -646,13 +651,58 @@ local function GetQuestNPCCFrame(npcName, defaultCFrame)
     return defaultCFrame
 end
 
+local function IsBossAlive(bossMobName)
+    if not bossMobName then return false end
+    local cleanName = string.lower(tostring(bossMobName))
+    local enemies = Workspace:FindFirstChild("Enemies")
+    if enemies then
+        for _, mob in ipairs(enemies:GetChildren()) do
+            if mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                local mName = string.lower(mob.Name)
+                if string.find(mName, cleanName, 1, true) or string.find(cleanName, mName, 1, true) then
+                    return true
+                end
+            end
+        end
+    end
+    local chars = Workspace:FindFirstChild("Characters")
+    if chars then
+        for _, mob in ipairs(chars:GetChildren()) do
+            if mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                local mName = string.lower(mob.Name)
+                if string.find(mName, cleanName, 1, true) or string.find(cleanName, mName, 1, true) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
 local function GetCurrentQuestData()
     local level = LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data:FindFirstChild("Level") and LocalPlayer.Data.Level.Value or 1
-    local selectedEntry = MasterMobDatabase[1]
+    local highestEntry = MasterMobDatabase[1]
+    local highestNonBoss = MasterMobDatabase[1]
+
     for _, q in ipairs(MasterMobDatabase) do
-        if level >= q.LevelRequest then selectedEntry = q end
+        if level >= q.LevelRequest then
+            highestEntry = q
+            if not q.IsBoss then
+                highestNonBoss = q
+            end
+        end
     end
-    return selectedEntry
+
+    -- THÔNG MINH: Nếu Quest cao nhất là Quest Boss nhưng Boss chưa hồi sinh / không lấy được
+    -- -> Tự động chuyển qua Farm Quest Quái Nhỏ Hơn gần nhất để cày cấp liên tục!
+    if highestEntry.IsBoss then
+        local bossSpawned = IsBossAlive(highestEntry.MobName) or IsBossAlive(highestEntry.FullName)
+        if not bossSpawned then
+            return highestNonBoss
+        end
+    end
+
+    return highestEntry
 end
 
 -- ============================================================================
@@ -805,14 +855,22 @@ local function SmoothTweenTo(targetCFrame, speedOverride)
 
     local hrp = LocalPlayer.Character.HumanoidRootPart
     local distance = (targetCFrame.Position - hrp.Position).Magnitude
-    if distance < 6 then 
-        hrp.CFrame = targetCFrame
+
+    MaintainAntiGravity()
+
+    -- Siêu Mượt: Khoảng cách ngắn (< 15 studs) dùng Lerp để chống giật rung màn hình
+    if distance < 15 then 
+        if TeleportState.ActiveTween then
+            TeleportState.ActiveTween:Cancel()
+            TeleportState.ActiveTween = nil
+        end
         TeleportState.IsTeleporting = false
         TeleportState.TargetCFrame = nil
+        hrp.CFrame = hrp.CFrame:Lerp(targetCFrame, 0.35)
         return 
     end
 
-    -- If already tweening towards a target close to this one (within 25 studs), allow the active tween to continue!
+    -- Nếu đang Tween đến vị trí gần mục tiêu (trong bán kính 25 studs), giữ nguyên Tween đang chạy
     if TeleportState.IsTeleporting and TeleportState.TargetCFrame and (TeleportState.TargetCFrame.Position - targetCFrame.Position).Magnitude < 25 then
         return TeleportState.ActiveTween
     end
@@ -822,7 +880,6 @@ local function SmoothTweenTo(targetCFrame, speedOverride)
     end
     TeleportState.IsTeleporting = true
     TeleportState.TargetCFrame = targetCFrame
-    MaintainAntiGravity()
 
     local currentSpeed = speedOverride or tonumber(CPHub.Config.TweenSpeed) or 270
     local duration = distance / currentSpeed
@@ -832,7 +889,7 @@ local function SmoothTweenTo(targetCFrame, speedOverride)
 
     tween.Completed:Connect(function(status)
         if status == Enum.PlaybackState.Completed then
-            if (hrp.Position - targetCFrame.Position).Magnitude > 5 then 
+            if (hrp.Position - targetCFrame.Position).Magnitude > 3 then 
                 hrp.CFrame = targetCFrame 
             end
             TeleportState.IsTeleporting = false
@@ -1077,6 +1134,22 @@ function FarmEngineModule.Init()
                 pcall(function()
                     local mode = CPHub.Config.SelectFarmMode or "Level"
                     local Enemies = Workspace:FindFirstChild("Enemies")
+
+                    -- SĂN BOUNTY NGƯỜI CHƠI GẦN KHI ĐANG FARM (M1 BYPASS SKILL ROTATION)
+                    if CPHub.Config.AutoBountyNearPlayer and MasterPvPBountyModule then
+                        local bountyTarget = MasterPvPBountyModule.GetNearbyEligiblePlayer(tonumber(CPHub.Config.BountyDetectRadius) or 250)
+                        if bountyTarget and bountyTarget.Character and bountyTarget.Character:FindFirstChild("HumanoidRootPart") and bountyTarget.Character:FindFirstChild("Humanoid") and bountyTarget.Character.Humanoid.Health > 0 then
+                            local tHRP = bountyTarget.Character:FindFirstChild("HumanoidRootPart")
+                            local tData = bountyTarget:FindFirstChild("Data")
+                            local tLevel = tData and tData:FindFirstChild("Level") and tData.Level.Value or "N/A"
+                            if tHRP then
+                                CPHub:SetAction("⚔️ [Auto Bounty] Đang đập người chơi gần: " .. bountyTarget.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V Bypass M1")
+                                SmoothTweenTo(tHRP.CFrame * CFrame.new(0, 4, -3))
+                                MasterPvPBountyModule.ExecuteSkillCombo(bountyTarget.Character)
+                                return
+                            end
+                        end
+                    end
 
                     if mode == "Level" then
                         -- MODE 1: AUTO LEVEL / QUEST
@@ -2989,64 +3062,142 @@ function MasterFightingStylesModule.Init()
 end
 
 -- ============================================================================
--- 25. MASTER PVP & AUTO BOUNTY HUNTING COMBO ENGINE
+-- 25. MASTER PVP & AUTO BOUNTY ENGINE (M1 BYPASS SKILL COMBO)
 -- ============================================================================
 
-local AutoBountyModule = {}
-function AutoBountyModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Auto Bounty Hunting Combo Engine...")
+local MasterPvPBountyModule = {
+    LastSkillCast = 0,
+    CurrentTarget = nil
+}
+
+function MasterPvPBountyModule.IsPlayerEligibleForBounty(targetPlayer)
+    if not targetPlayer or targetPlayer == LocalPlayer then return false end
+    local char = targetPlayer.Character
+    if not char then return false end
+    
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not hrp or hum.Health <= 0 then return false end
+    
+    -- Safe Zone & ForceField Protection Check
+    if char:FindFirstChild("SafeZone") or char:FindFirstChild("ForceField") or char:FindFirstChild("HasSafeZone") then 
+        return false 
+    end
+
+    local myData = LocalPlayer:FindFirstChild("Data")
+    local myLevel = myData and myData:FindFirstChild("Level") and myData.Level.Value or 1
+    
+    local targetData = targetPlayer:FindFirstChild("Data")
+    local targetLevel = targetData and targetData:FindFirstChild("Level") and targetData.Level.Value or 0
+
+    -- Kiểm tra điều kiện Level nhận Bounty trong Blox Fruits
+    if targetLevel > 0 then
+        if myLevel > 2000 and targetLevel < 1750 then return false end
+        if myLevel <= 2000 and (targetLevel < myLevel - 250 or targetLevel > myLevel + 350) then return false end
+    end
+
+    -- Marine vs Marine không nhận được bounty ngoài đấu trường
+    if LocalPlayer.Team and targetPlayer.Team and LocalPlayer.Team.Name == "Marines" and targetPlayer.Team.Name == "Marines" then
+        return false
+    end
+
+    return true
+end
+
+function MasterPvPBountyModule.GetNearbyEligiblePlayer(radius)
+    radius = radius or tonumber(CPHub.Config.BountyDetectRadius) or 250
+    local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return nil end
+
+    local bestTarget = nil
+    local minDistance = radius
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if MasterPvPBountyModule.IsPlayerEligibleForBounty(p) then
+            local pHRP = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+            if pHRP then
+                local dist = (pHRP.Position - myHRP.Position).Magnitude
+                if dist <= minDistance then
+                    minDistance = dist
+                    bestTarget = p
+                end
+            end
+        end
+    end
+
+    return bestTarget
+end
+
+-- Bypass cơ chế không tính Bounty khi đánh M1 bằng Combo Skill xoay vòng (Z, X, C, V)
+function MasterPvPBountyModule.ExecuteSkillCombo(targetChar)
+    if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then return end
+    local vim = Services.VirtualInputManager
+    
+    -- Xoay Camera hướng thẳng vào người chơi mục tiêu
+    pcall(function()
+        if Workspace.CurrentCamera and targetChar:FindFirstChild("HumanoidRootPart") then
+            Workspace.CurrentCamera.CFrame = CFrame.new(Workspace.CurrentCamera.CFrame.Position, targetChar.HumanoidRootPart.Position)
+        end
+    end)
+
+    -- Xoay vòng toàn bộ 4 loại vũ khí: Võ -> Kiếm -> Trái Ác Quỷ -> Súng
+    local weaponCategories = {"Melee", "Sword", "Blox Fruit", "Gun"}
+    for _, cat in ipairs(weaponCategories) do
+        local tool = weaponSc(cat)
+        if tool then
+            task.wait(0.04)
+            local keys = {Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C, Enum.KeyCode.V}
+            for _, key in ipairs(keys) do
+                pcall(function()
+                    if vim then
+                        vim:SendKeyEvent(true, key, false, game)
+                        task.wait(0.03)
+                        vim:SendKeyEvent(false, key, false, game)
+                    end
+                end)
+            end
+            pcall(function() tool:Activate() end)
+        end
+    end
+end
+
+function MasterPvPBountyModule.Init()
+    CPHub:Debug("INFO", "Khoi chay Master PvP & Auto Bounty Hunting Combo Engine (M1 Bypass)...")
     task.spawn(function()
-        while task.wait(0.3) do
+        while task.wait(0.2) do
             if CPHub.Config.AutoBounty then
                 pcall(function()
                     local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                     local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
                     if not hrp or not hum then return end
 
-                    -- Health Low Escape to Sky Safe Zone
+                    -- Tự động bay lên trời né đòn khi máu dưới 25%
                     if hum.Health < hum.MaxHealth * 0.25 then
-                        CPHub:Debug("WARN", "HP xuống dưới 25%! Bay lên không trung hồi phục HP...")
-                        SmoothTweenTo(hrp.CFrame * CFrame.new(0, 200, 0))
+                        CPHub:SetAction("⚠️ Máu dưới 25%! Đang bay lên không trung hồi phục HP...", "Tự động né đòn")
+                        SmoothTweenTo(hrp.CFrame * CFrame.new(0, 250, 0))
                         return
                     end
 
-                    -- Search Target Player
-                    local targetPlayer = nil
-                    local minDistance = math.huge
-                    for _, p in ipairs(Players:GetPlayers()) do
-                        if p ~= LocalPlayer and p.Character then
-                            local pHRP = p.Character:FindFirstChild("HumanoidRootPart")
-                            local pHum = p.Character:FindFirstChild("Humanoid")
-                            if pHRP and pHum and pHum.Health > 0 then
-                                local dist = (pHRP.Position - hrp.Position).Magnitude
-                                if dist < minDistance then
-                                    minDistance = dist
-                                    targetPlayer = p
-                                end
-                            end
-                        end
-                    end
-
+                    -- Tìm người chơi đủ điều kiện Bounty gần nhất
+                    local targetPlayer = MasterPvPBountyModule.GetNearbyEligiblePlayer(30000)
                     if targetPlayer and targetPlayer.Character then
                         local pHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-                        if pHRP then
-                            weaponSc(CPHub.Config.SelectWeapon)
-                            SmoothTweenTo(pHRP.CFrame * CFrame.new(0, 3, -4))
+                        local pHum = targetPlayer.Character:FindFirstChild("Humanoid")
+                        if pHRP and pHum and pHum.Health > 0 then
+                            local tData = targetPlayer:FindFirstChild("Data")
+                            local tLevel = tData and tData:FindFirstChild("Level") and tData.Level.Value or "N/A"
+                            CPHub:SetAction("⚔️ [Auto Bounty] Đang săn người chơi: " .. targetPlayer.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V")
+                            SmoothTweenTo(pHRP.CFrame * CFrame.new(0, 4, -3))
+                            MasterPvPBountyModule.ExecuteSkillCombo(targetPlayer.Character)
                         end
-                        
-                        -- Execute Skill Remotes
-                        pcall(function()
-                            local VirtualInputManager = Services.VirtualInputManager
-                            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Z, false, game)
-                            task.wait(0.1)
-                            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Z, false, game)
-                        end)
                     end
                 end)
             end
         end
     end)
 end
+
+local AutoBountyModule = MasterPvPBountyModule
 
 -- ============================================================================
 -- 26. MASTER AUTO KAITUN PRO ENGINE (100% AUTOMATED SEA 1 -> 2 -> 3 PROGRESSION)
@@ -3421,6 +3572,22 @@ function MasterKaitunModule.Init()
                         if level >= 2550 then
                             CPHub.Config.KaitunStatus = "🌟 ĐÃ ĐẠT CẤP ĐỘ TỐI ĐA MAX LEVEL 2550!"
                             return
+                        end
+                    end
+
+                    -- SĂN BOUNTY NGƯỜI CHƠI GẦN TRONG TIẾN TRÌNH KAITUN (M1 BYPASS)
+                    if CPHub.Config.AutoBountyNearPlayer and MasterPvPBountyModule then
+                        local bountyTarget = MasterPvPBountyModule.GetNearbyEligiblePlayer(tonumber(CPHub.Config.BountyDetectRadius) or 250)
+                        if bountyTarget and bountyTarget.Character and bountyTarget.Character:FindFirstChild("HumanoidRootPart") and bountyTarget.Character:FindFirstChild("Humanoid") and bountyTarget.Character.Humanoid.Health > 0 then
+                            local tHRP = bountyTarget.Character:FindFirstChild("HumanoidRootPart")
+                            local tData = bountyTarget:FindFirstChild("Data")
+                            local tLevel = tData and tData:FindFirstChild("Level") and tData.Level.Value or "N/A"
+                            if tHRP then
+                                CPHub:SetAction("⚔️ [Auto Bounty] Đang đập người chơi gần: " .. bountyTarget.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V Bypass M1")
+                                SmoothTweenTo(tHRP.CFrame * CFrame.new(0, 4, -3))
+                                MasterPvPBountyModule.ExecuteSkillCombo(bountyTarget.Character)
+                                return
+                            end
                         end
                     end
 
@@ -5508,14 +5675,26 @@ local function CreateNativeUI()
         CPHub.Config.AttackReach = v
     end)
 
-    -- Right Column: 🛡️ HAKI & MASTERY SKILL SPAMMER
+    -- Right Column: 🛡️ HAKI & TIỆN ÍCH CHIẾN ĐẤU
     AddSectionDivider(Right2, "🛡️ HAKI & TIỆN ÍCH CHIẾN ĐẤU")
-    AddCheckbox(Right2, "Tự Bật Buso Haki (Vũ Trang)", CPHub.Config.AutoBuso, function(v) CPHub.Config.AutoBuso = v end)
-    AddCheckbox(Right2, "Tự Bật Ken Haki (Quan Sát)", CPHub.Config.AutoKen, function(v) CPHub.Config.AutoKen = v end)
-    AddCheckbox(Right2, "Tự Động Nhập Code x2 EXP", false, function() end)
+    AddCheckbox(Right2, "Tự Bật Buso Haki (Vũ Trang)", CPHub.Config.AutoBuso, function(v) CPHub.Config.AutoBuso = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right2, "Tự Bật Ken Haki (Quan Sát)", CPHub.Config.AutoKen, function(v) CPHub.Config.AutoKen = v; MasterConfigModule.Save() end)
     AddCheckbox(Right2, "Bypass Dịch Chuyển (Safe Tween TP)", true, function() end)
     AddCheckbox(Right2, "Anti AFK (Chống Văng Game)", true, function() end)
-    AddCheckbox(Right2, "Tự Động Rejoin Khi Mất Kết Nối", true, function() end)
+
+    AddSectionDivider(Right2, "⚔️ AUTO BOUNTY GẦN KHI FARM (M1 BYPASS)")
+    AddCheckbox(Right2, "Săn Người Chơi Gần (Đủ Cấp Nhận Bounty)", CPHub.Config.AutoBountyNearPlayer, function(v)
+        CPHub.Config.AutoBountyNearPlayer = v
+        MasterConfigModule.Save()
+    end)
+    AddSlider(Right2, "Bán Kính Quét Người Chơi Bounty", 100, 500, tonumber(CPHub.Config.BountyDetectRadius) or 250, " studs", function(v)
+        CPHub.Config.BountyDetectRadius = v
+        MasterConfigModule.Save()
+    end)
+    AddCheckbox(Right2, "Tự Xoay Vòng Skill Combo (Bypass M1)", CPHub.Config.BountyBypassSkillRotation, function(v)
+        CPHub.Config.BountyBypassSkillRotation = v
+        MasterConfigModule.Save()
+    end)
 
     AddSectionDivider(Right2, "🎯 FARM MASTERY & SKILL SPAMMER")
     AddCheckbox(Right2, "Khóa Điểm Farm Mastery Vũ Khí", CPHub.Config.StartLockMastery, function(v) CPHub.Config.StartLockMastery = v end)
