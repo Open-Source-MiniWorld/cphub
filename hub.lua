@@ -4593,7 +4593,7 @@ function MasterWebRemoteTelemetryModule.Init()
     print("⚡ (Mã ID đã được tự động sao chép vào Clipboard - Chỉ cần Ctrl+V lên Web!)")
     print("===================================================================")
 
-    local httpReq = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
+    local httpReq = request or http_request or (syn and syn.request) or (fluxus and fluxus.request) or (http and type(http) == "table" and http.request)
     if not httpReq then 
         CPHub:Debug("WARN", "Executor không hỗ trợ http_request! Vui lòng dùng executor cao cấp.")
         return 
