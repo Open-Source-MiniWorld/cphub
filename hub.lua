@@ -198,12 +198,24 @@ local CPHub = {
         AntiAFK = true,
         LogToConsole = true
     },
-    Logs = {}
+    Logs = {},
+    CurrentAction = "Đang khởi tạo CP Hub...",
+    CurrentTarget = "Chưa có mục tiêu",
+    UpdateActionUI = nil
 }
 
 -- ============================================================================
 -- 1. ADVANCED LOGGER & UNLOAD ENGINE
 -- ============================================================================
+
+function CPHub:SetAction(action, target)
+    if action then self.CurrentAction = tostring(action) end
+    if target then self.CurrentTarget = tostring(target) end
+    self:Debug("ACTION", string.format("[%s] -> %s", tostring(self.CurrentAction), tostring(self.CurrentTarget or "")))
+    if type(self.UpdateActionUI) == "function" then
+        pcall(self.UpdateActionUI, self.CurrentAction, self.CurrentTarget)
+    end
+end
 
 function CPHub:Debug(level, message)
     level = string.upper(level or "INFO")
@@ -1077,6 +1089,7 @@ function FarmEngineModule.Init()
 
                         -- Smart Quest & Island Transition Check
                         if isQuestActive and questTitle ~= "" and not string.find(string.lower(questTitle), string.lower(quest.QuestName)) and not string.find(string.lower(questTitle), string.lower(mobData.MobName)) then
+                            CPHub:SetAction("Đủ level -> Hủy quest cũ & chuyển bãi mới", "Mục tiêu: " .. mobData.FullName)
                             pcall(function()
                                 ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
                             end)
@@ -1084,13 +1097,16 @@ function FarmEngineModule.Init()
                         end
 
                         if not isQuestActive then
-                            CPHub:Debug("INFO", "[Auto Level] Di chuyen nhan Quest: " .. quest.QuestName)
+                            CPHub:SetAction("Đang bay nhận Quest: " .. quest.QuestName, "NPC: " .. (quest.QuestNPC or mobData.FullName))
                             SmoothTweenTo(npcCF)
                             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                                 if (LocalPlayer.Character.HumanoidRootPart.Position - npcCF.Position).Magnitude < 18 then
                                     pcall(function()
                                         local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
-                                        if commF then commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel) end
+                                        if commF then 
+                                            commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel)
+                                            CPHub:SetAction("Đã nhận Quest: " .. quest.QuestName, "Bắt đầu bay farm quái")
+                                        end
                                     end)
                                 end
                             end
@@ -1103,9 +1119,11 @@ function FarmEngineModule.Init()
                                 local tool = weaponSc(CPHub.Config.SelectWeapon)
                                 local reach = tonumber(CPHub.Config.AttackReach) or 18
                                 local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
+                                CPHub:SetAction("Đang lơ lửng đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
                                 SmoothTweenTo(farmCF)
                             else
                                 local spawnCF = mobData.SpawnLocation and mobData.SpawnLocation[1] or quest.QuestCFrame
+                                CPHub:SetAction("Đang chờ quái hồi sinh", "Khu vực: " .. mobData.FullName)
                                 SmoothTweenTo(spawnCF * CFrame.new(0, 25, 0))
                             end
                         end
@@ -3119,7 +3137,7 @@ function MasterKaitunModule.SolveSea1To2Transition()
     if not commF then return end
 
     CPHub.Config.KaitunStatus = "[Kaitun Sea 1 -> 2] Đang làm chuỗi nhiệm vụ chuyển sang Sea 2..."
-    CPHub:Debug("INFO", "Kaitun: Đang thực hiện nhiệm vụ chuyển Sea 2...")
+    CPHub:SetAction("Làm nhiệm vụ chuyển Sea 2 (Military Detective)", "Nhà Tù Prison & Ice Admiral")
 
     -- Bước 1: Gặp Thám Tử Quân Đội (Military Detective) tại Nhà Tù Prison lấy Chìa Khóa
     SmoothTweenTo(CFrame.new(4854, 6, 745))
@@ -3129,6 +3147,7 @@ function MasterKaitunModule.SolveSea1To2Transition()
     -- Bước 2: Mở cửa Động Băng tại Snow Mountain và tiêu diệt Ice Admiral Boss
     local iceAdmiral = GetTargetEnemy("Ice Admiral")
     if iceAdmiral and iceAdmiral:FindFirstChild("HumanoidRootPart") then
+        CPHub:SetAction("Đang tiêu diệt Ice Admiral Boss (Chuyển Sea 2)", "Boss: Ice Admiral")
         PosMon = iceAdmiral.HumanoidRootPart.Position
         weaponSc(CPHub.Config.SelectWeapon)
         SmoothTweenTo(iceAdmiral.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
@@ -3138,6 +3157,7 @@ function MasterKaitunModule.SolveSea1To2Transition()
     end
 
     -- Bước 3: Nói chuyện với Captain Experienced tại Middle Town để du hành sang Sea 2
+    CPHub:SetAction("Nói chuyện Captain Experienced du hành sang Sea 2", "Middle Town")
     SmoothTweenTo(CFrame.new(-29, 6, 5320))
     task.wait(0.5)
     commF:InvokeServer("TravelDressrosa")
@@ -3151,6 +3171,7 @@ function MasterKaitunModule.SolveBartiloQuest()
     CPHub.Config.KaitunStatus = "[Kaitun Bartilo] Đang thực hiện chuỗi Bartilo Quest..."
     
     -- Bước 1: Nhận nhiệm vụ Bartilo tại Cafe
+    CPHub:SetAction("Nhận nhiệm vụ Bartilo tại Cafe", "NPC: Bartilo")
     SmoothTweenTo(CFrame.new(-456, 73, 301))
     task.wait(0.5)
     commF:InvokeServer("BartiloQuest", "Start")
@@ -3158,6 +3179,7 @@ function MasterKaitunModule.SolveBartiloQuest()
     -- Bước 2: Tiêu diệt 50 Swan Pirate
     local swanMob = GetTargetEnemy("Swan Pirate")
     if swanMob and swanMob:FindFirstChild("HumanoidRootPart") then
+        CPHub:SetAction("Đang tiêu diệt Swan Pirate (Bartilo Quest)", "Quái: Swan Pirate")
         PosMon = swanMob.HumanoidRootPart.Position
         weaponSc(CPHub.Config.SelectWeapon)
         SmoothTweenTo(swanMob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
@@ -3167,6 +3189,7 @@ function MasterKaitunModule.SolveBartiloQuest()
     -- Bước 3: Tiêu diệt Jeremy Boss
     local jeremy = GetTargetEnemy("Jeremy")
     if jeremy and jeremy:FindFirstChild("HumanoidRootPart") then
+        CPHub:SetAction("Đang tiêu diệt Jeremy Boss (Bartilo Quest)", "Boss: Jeremy")
         PosMon = jeremy.HumanoidRootPart.Position
         weaponSc(CPHub.Config.SelectWeapon)
         SmoothTweenTo(jeremy.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
@@ -3176,6 +3199,7 @@ function MasterKaitunModule.SolveBartiloQuest()
     end
 
     -- Bước 4: Giải cứu đấu sĩ tại Colosseum với mật mã Dinh Thự
+    CPHub:SetAction("Giải mã phiến đá Colosseum (Bartilo Quest)", "Đấu Trường Colosseum")
     local colosseumPlates = {
         CFrame.new(-1820, 50, -2740),
         CFrame.new(-1800, 50, -2720),
@@ -3195,7 +3219,7 @@ function MasterKaitunModule.SolveSea2To3Transition()
     if not commF then return end
 
     CPHub.Config.KaitunStatus = "[Kaitun Sea 2 -> 3] Đang làm chuỗi nhiệm vụ chuyển sang Sea 3..."
-    CPHub:Debug("INFO", "Kaitun: Đang thực hiện nhiệm vụ chuyển Sea 3...")
+    CPHub:SetAction("Làm nhiệm vụ chuyển Sea 3 (Don Swan & King Red Head)", "Dinh Thự & Đấu Trường")
 
     -- Bước 1: Gặp Trevor tại Dinh Thự Mansion (Đưa trái 1M+ nếu cần)
     SmoothTweenTo(CFrame.new(-288, 331, 592))
@@ -3204,6 +3228,7 @@ function MasterKaitunModule.SolveSea2To3Transition()
     -- Bước 2: Vào Phòng Don Swan và tiêu diệt Don Swan Boss
     local donSwan = GetTargetEnemy("Don Swan")
     if donSwan and donSwan:FindFirstChild("HumanoidRootPart") then
+        CPHub:SetAction("Đang tiêu diệt Don Swan Boss (Chuyển Sea 3)", "Boss: Don Swan")
         PosMon = donSwan.HumanoidRootPart.Position
         weaponSc(CPHub.Config.SelectWeapon)
         SmoothTweenTo(donSwan.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
@@ -3220,6 +3245,7 @@ function MasterKaitunModule.SolveSea2To3Transition()
     -- Bước 4: Tiêu diệt Rip Indra Boss tại Đấu Trường
     local ripIndra = GetTargetEnemy("Rip Indra")
     if ripIndra and ripIndra:FindFirstChild("HumanoidRootPart") then
+        CPHub:SetAction("Đang tiêu diệt Rip Indra Boss (Chuyển Sea 3)", "Boss: Rip Indra")
         PosMon = ripIndra.HumanoidRootPart.Position
         weaponSc(CPHub.Config.SelectWeapon)
         SmoothTweenTo(ripIndra.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
@@ -3227,6 +3253,7 @@ function MasterKaitunModule.SolveSea2To3Transition()
     end
 
     -- Bước 5: Nói chuyện với Mr. Captain tại Green Zone để du hành sang Sea 3
+    CPHub:SetAction("Nói chuyện Mr. Captain du hành sang Sea 3", "Green Zone")
     SmoothTweenTo(CFrame.new(-2440, 73, -3216))
     task.wait(0.5)
     commF:InvokeServer("TravelZou")
@@ -3409,6 +3436,7 @@ function MasterKaitunModule.Init()
 
                     -- Smart Quest & Island Transition Check
                     if isQuestActive and questTitle ~= "" and not string.find(string.lower(questTitle), string.lower(quest.QuestName)) and not string.find(string.lower(questTitle), string.lower(mobData.MobName)) then
+                        CPHub:SetAction("Đủ level -> Hủy quest cũ & chuyển bãi mới", "Mục tiêu: " .. mobData.FullName)
                         pcall(function()
                             ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
                         end)
@@ -3418,12 +3446,16 @@ function MasterKaitunModule.Init()
                     CPHub.Config.KaitunStatus = string.format("[Sea %d] Level %d: Đang farm %s (Quest: %s)", currentSea, level, mobData.FullName, quest.QuestName)
 
                     if not isQuestActive then
+                        CPHub:SetAction("Đang bay nhận Quest: " .. quest.QuestName, "NPC: " .. (quest.QuestNPC or mobData.FullName))
                         SmoothTweenTo(npcCF)
                         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                             if (LocalPlayer.Character.HumanoidRootPart.Position - npcCF.Position).Magnitude < 18 then
                                 pcall(function()
                                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
-                                    if commF then commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel) end
+                                    if commF then 
+                                        commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel)
+                                        CPHub:SetAction("Đã nhận Quest: " .. quest.QuestName, "Bắt đầu bay farm quái")
+                                    end
                                 end)
                             end
                         end
@@ -3436,9 +3468,11 @@ function MasterKaitunModule.Init()
                             local tool = weaponSc(CPHub.Config.SelectWeapon)
                             local reach = tonumber(CPHub.Config.AttackReach) or 18
                             local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
+                            CPHub:SetAction("Đang lơ lửng đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
                             SmoothTweenTo(farmCF)
                         else
                             local spawnCF = mobData.SpawnLocation and mobData.SpawnLocation[1] or quest.QuestCFrame
+                            CPHub:SetAction("Đang chờ quái hồi sinh", "Khu vực: " .. mobData.FullName)
                             SmoothTweenTo(spawnCF * CFrame.new(0, 25, 0))
                         end
                     end
@@ -4570,10 +4604,10 @@ local function CreateNativeUI()
     -- IN-GAME DRAGGABLE LIVE TELEMETRY MINI HUD (Positioned at Bottom-Left so it NEVER blocks the menu)
     local MiniHUD = Instance.new("Frame")
     MiniHUD.Name = "CPHub_FloatingHUD"
-    MiniHUD.Size = UDim2.fromOffset(235, 138)
-    MiniHUD.Position = UDim2.new(0.02, 0, 0.68, 0)
+    MiniHUD.Size = UDim2.fromOffset(270, 162)
+    MiniHUD.Position = UDim2.new(0.02, 0, 0.65, 0)
     MiniHUD.BackgroundColor3 = Color3.fromRGB(15, 16, 22)
-    MiniHUD.BackgroundTransparency = 0.1
+    MiniHUD.BackgroundTransparency = 0.08
     MiniHUD.BorderSizePixel = 0
     MiniHUD.Active = true
     MiniHUD.Draggable = true
@@ -4605,7 +4639,7 @@ local function CreateNativeUI()
     hudRow1.Size = UDim2.new(1, -16, 0, 15)
     hudRow1.Position = UDim2.new(0, 8, 0, 24)
     hudRow1.BackgroundTransparency = 1
-    hudRow1.Text = "📊 Level: 2550 (Max) | Sea: 1"
+    hudRow1.Text = "📊 Level: 1/2550 | Sea: 1"
     hudRow1.TextColor3 = Color3.fromRGB(255, 255, 255)
     hudRow1.TextSize = 10
     hudRow1.Font = Enum.Font.GothamMedium
@@ -4625,24 +4659,35 @@ local function CreateNativeUI()
     hudRow2.ZIndex = 26
     hudRow2.Parent = MiniHUD
 
-    local hudRow3 = Instance.new("TextLabel")
-    hudRow3.Size = UDim2.new(1, -16, 0, 15)
-    hudRow3.Position = UDim2.new(0, 8, 0, 56)
-    hudRow3.BackgroundTransparency = 1
-    hudRow3.Text = "🎯 Đang chạy..."
-    hudRow3.TextColor3 = Color3.fromRGB(220, 220, 230)
-    hudRow3.TextSize = 9
-    hudRow3.Font = Enum.Font.Gotham
-    hudRow3.TextXAlignment = Enum.TextXAlignment.Left
-    hudRow3.TextTruncate = Enum.TextTruncate.AtEnd
-    hudRow3.ZIndex = 26
-    hudRow3.Parent = MiniHUD
+    local hudActionRow = Instance.new("TextLabel")
+    hudActionRow.Size = UDim2.new(1, -16, 0, 15)
+    hudActionRow.Position = UDim2.new(0, 8, 0, 56)
+    hudActionRow.BackgroundTransparency = 1
+    hudActionRow.Text = "⚡ ĐANG LÀM: Đang khởi tạo CP Hub..."
+    hudActionRow.TextColor3 = Color3.fromRGB(255, 220, 100)
+    hudActionRow.TextSize = 9.5
+    hudActionRow.Font = Enum.Font.GothamBold
+    hudActionRow.TextXAlignment = Enum.TextXAlignment.Left
+    hudActionRow.ZIndex = 26
+    hudActionRow.Parent = MiniHUD
+
+    local hudTargetRow = Instance.new("TextLabel")
+    hudTargetRow.Size = UDim2.new(1, -16, 0, 15)
+    hudTargetRow.Position = UDim2.new(0, 8, 0, 72)
+    hudTargetRow.BackgroundTransparency = 1
+    hudTargetRow.Text = "🎯 MỤC TIÊU: Chưa có mục tiêu"
+    hudTargetRow.TextColor3 = Color3.fromRGB(130, 220, 255)
+    hudTargetRow.TextSize = 9.5
+    hudTargetRow.Font = Enum.Font.GothamMedium
+    hudTargetRow.TextXAlignment = Enum.TextXAlignment.Left
+    hudTargetRow.ZIndex = 26
+    hudTargetRow.Parent = MiniHUD
 
     local hudRow4 = Instance.new("TextLabel")
     hudRow4.Size = UDim2.new(1, -16, 0, 15)
-    hudRow4.Position = UDim2.new(0, 8, 0, 72)
+    hudRow4.Position = UDim2.new(0, 8, 0, 88)
     hudRow4.BackgroundTransparency = 1
-    hudRow4.Text = "📶 FPS: 60 | Ping: 45ms"
+    hudRow4.Text = "📶 FPS: 60 | Ping: 45ms | Fast Attack: BẬT"
     hudRow4.TextColor3 = Color3.fromRGB(180, 200, 255)
     hudRow4.TextSize = 9
     hudRow4.Font = Enum.Font.Gotham
@@ -4653,7 +4698,7 @@ local function CreateNativeUI()
     -- Quick Toggle Kaitun Button right inside MiniHUD
     local hudKaitunBtn = Instance.new("TextButton")
     hudKaitunBtn.Size = UDim2.new(1, -16, 0, 24)
-    hudKaitunBtn.Position = UDim2.new(0, 8, 0, 96)
+    hudKaitunBtn.Position = UDim2.new(0, 8, 0, 118)
     hudKaitunBtn.BackgroundColor3 = Color3.fromRGB(245, 230, 175)
     hudKaitunBtn.Text = "⚡ BẬT/TẮT SUPER KAITUN"
     hudKaitunBtn.TextColor3 = Color3.fromRGB(18, 18, 18)
@@ -4673,6 +4718,14 @@ local function CreateNativeUI()
         hudKaitunBtn.Text = CPHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
         MasterConfigModule.Save()
     end)
+
+    -- Hook dynamic CPHub.UpdateActionUI callback
+    CPHub.UpdateActionUI = function(action, target)
+        pcall(function()
+            hudActionRow.Text = "⚡ ĐANG LÀM: " .. tostring(action or "Đang chạy...")
+            hudTargetRow.Text = "🎯 MỤC TIÊU: " .. tostring(target or "...")
+        end)
+    end
 
     -- Vòng lặp cập nhật Live Telemetry Mini HUD
     task.spawn(function()
@@ -4704,8 +4757,9 @@ local function CreateNativeUI()
 
                 hudRow1.Text = string.format("📊 Level: %d/2550 | Sea: %d", level, CPHub.Config.KaitunCurrentSea or 1)
                 hudRow2.Text = string.format("💰 Beli: $%s | 💎 Frags: %s", tostring(math.floor(beli / 1000)) .. "k", tostring(frags))
-                hudRow3.Text = "🎯 " .. tostring(CPHub.Config.SuperKaitunStatus or CPHub.Config.KaitunStatus or "Đang hoạt động...")
-                hudRow4.Text = string.format("📶 FPS: %d | Ping: %dms", currentFps, ping)
+                hudActionRow.Text = "⚡ ĐANG LÀM: " .. tostring(CPHub.CurrentAction or "Đang hoạt động...")
+                hudTargetRow.Text = "🎯 MỤC TIÊU: " .. tostring(CPHub.CurrentTarget or (CPHub.Config.KaitunStatus or "..."))
+                hudRow4.Text = string.format("📶 FPS: %d | Ping: %dms | Fast Attack: %s", currentFps, ping, CPHub.Config.FastAttack and "BẬT" or "TẮT")
                 hudKaitunBtn.Text = CPHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
             end)
         end
