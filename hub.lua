@@ -31,9 +31,9 @@ local CPHub = {
         -- ====================================================================
         -- 🌟 ULTIMATE SUPER KAITUN ENGINE (ALL ITEMS, 1B BELI, 1M FRAGS, FULL V4, 30M BOUNTY)
         -- ====================================================================
-        SuperKaitun = false,
+        SuperKaitun = true,
         SuperKaitunStage = 1, -- 1: Level 2550, 2: All Items, 3: Full Race V4, 4: 1B Beli / 1M Frags, 5: 30M Bounty
-        SuperKaitunStatus = "Đang chờ kích hoạt Super Kaitun...",
+        SuperKaitunStatus = "Đang khởi chạy Super Kaitun...",
         SuperKaitunTargetBeli = 1000000000,   -- 1 Billion Beli
         SuperKaitunTargetFrags = 1000000,    -- 1 Million Fragments
         SuperKaitunTargetBounty = 30000000,  -- 30 Million Bounty
@@ -46,8 +46,8 @@ local CPHub = {
         -- ====================================================================
         -- 🌟 MASTER AUTO KAITUN PRO ENGINE OPTIONS (1 - 2550 FULL PROGRESSION)
         -- ====================================================================
-        AutoKaitun = false,
-        KaitunStatus = "Đang chờ kích hoạt...",
+        AutoKaitun = true,
+        KaitunStatus = "Đang khởi chạy Auto Kaitun...",
         KaitunCurrentSea = 1,
         KaitunTargetLevel = 2550,
         KaitunAutoNextSea = true,
@@ -4463,16 +4463,17 @@ local function CreateNativeUI()
         end
     end)
 
-    -- IN-GAME DRAGGABLE LIVE TELEMETRY MINI HUD (Positioned at Top-Right by default)
+    -- IN-GAME DRAGGABLE LIVE TELEMETRY MINI HUD (Positioned at Top-Left so it never blocks the menu)
     local MiniHUD = Instance.new("Frame")
     MiniHUD.Name = "CPHub_FloatingHUD"
-    MiniHUD.Size = UDim2.fromOffset(260, 115)
-    MiniHUD.Position = UDim2.new(1, -275, 0, 20)
+    MiniHUD.Size = UDim2.fromOffset(235, 138)
+    MiniHUD.Position = UDim2.new(0.02, 0, 0.03, 0)
     MiniHUD.BackgroundColor3 = Color3.fromRGB(15, 16, 22)
-    MiniHUD.BackgroundTransparency = 0.15
+    MiniHUD.BackgroundTransparency = 0.1
     MiniHUD.BorderSizePixel = 0
     MiniHUD.Active = true
     MiniHUD.Draggable = true
+    MiniHUD.ZIndex = 25
     MiniHUD.Parent = ScreenGui
 
     local hudCorner = Instance.new("UICorner")
@@ -4485,60 +4486,89 @@ local function CreateNativeUI()
     hudStroke.Parent = MiniHUD
 
     local hudTitle = Instance.new("TextLabel")
-    hudTitle.Size = UDim2.new(1, -20, 0, 20)
-    hudTitle.Position = UDim2.new(0, 10, 0, 6)
+    hudTitle.Size = UDim2.new(1, -16, 0, 18)
+    hudTitle.Position = UDim2.new(0, 8, 0, 6)
     hudTitle.BackgroundTransparency = 1
     hudTitle.Text = "⚡ CP HUB </> LIVE TELEMETRY"
     hudTitle.TextColor3 = Color3.fromRGB(245, 230, 175)
-    hudTitle.TextSize = 11
+    hudTitle.TextSize = 10
     hudTitle.Font = Enum.Font.GothamBold
     hudTitle.TextXAlignment = Enum.TextXAlignment.Left
+    hudTitle.ZIndex = 26
     hudTitle.Parent = MiniHUD
 
     local hudRow1 = Instance.new("TextLabel")
-    hudRow1.Size = UDim2.new(1, -20, 0, 16)
-    hudRow1.Position = UDim2.new(0, 10, 0, 28)
+    hudRow1.Size = UDim2.new(1, -16, 0, 15)
+    hudRow1.Position = UDim2.new(0, 8, 0, 24)
     hudRow1.BackgroundTransparency = 1
-    hudRow1.Text = "📊 Level: 2550 (Max) | Sea: 3"
+    hudRow1.Text = "📊 Level: 2550 (Max) | Sea: 1"
     hudRow1.TextColor3 = Color3.fromRGB(255, 255, 255)
     hudRow1.TextSize = 10
     hudRow1.Font = Enum.Font.GothamMedium
     hudRow1.TextXAlignment = Enum.TextXAlignment.Left
+    hudRow1.ZIndex = 26
     hudRow1.Parent = MiniHUD
 
     local hudRow2 = Instance.new("TextLabel")
-    hudRow2.Size = UDim2.new(1, -20, 0, 16)
-    hudRow2.Position = UDim2.new(0, 10, 0, 46)
+    hudRow2.Size = UDim2.new(1, -16, 0, 15)
+    hudRow2.Position = UDim2.new(0, 8, 0, 40)
     hudRow2.BackgroundTransparency = 1
     hudRow2.Text = "💰 Beli: $0 | 💎 Frags: 0"
     hudRow2.TextColor3 = Color3.fromRGB(100, 255, 160)
     hudRow2.TextSize = 10
     hudRow2.Font = Enum.Font.GothamMedium
     hudRow2.TextXAlignment = Enum.TextXAlignment.Left
+    hudRow2.ZIndex = 26
     hudRow2.Parent = MiniHUD
 
     local hudRow3 = Instance.new("TextLabel")
-    hudRow3.Size = UDim2.new(1, -20, 0, 16)
-    hudRow3.Position = UDim2.new(0, 10, 0, 64)
+    hudRow3.Size = UDim2.new(1, -16, 0, 15)
+    hudRow3.Position = UDim2.new(0, 8, 0, 56)
     hudRow3.BackgroundTransparency = 1
-    hudRow3.Text = "🎯 Sẵn Sàng..."
+    hudRow3.Text = "🎯 Đang chạy..."
     hudRow3.TextColor3 = Color3.fromRGB(220, 220, 230)
-    hudRow3.TextSize = 10
+    hudRow3.TextSize = 9
     hudRow3.Font = Enum.Font.Gotham
     hudRow3.TextXAlignment = Enum.TextXAlignment.Left
     hudRow3.TextTruncate = Enum.TextTruncate.AtEnd
+    hudRow3.ZIndex = 26
     hudRow3.Parent = MiniHUD
 
     local hudRow4 = Instance.new("TextLabel")
-    hudRow4.Size = UDim2.new(1, -20, 0, 16)
-    hudRow4.Position = UDim2.new(0, 10, 0, 84)
+    hudRow4.Size = UDim2.new(1, -16, 0, 15)
+    hudRow4.Position = UDim2.new(0, 8, 0, 72)
     hudRow4.BackgroundTransparency = 1
     hudRow4.Text = "📶 FPS: 60 | Ping: 45ms"
     hudRow4.TextColor3 = Color3.fromRGB(180, 200, 255)
-    hudRow4.TextSize = 10
+    hudRow4.TextSize = 9
     hudRow4.Font = Enum.Font.Gotham
     hudRow4.TextXAlignment = Enum.TextXAlignment.Left
+    hudRow4.ZIndex = 26
     hudRow4.Parent = MiniHUD
+
+    -- Quick Toggle Kaitun Button right inside MiniHUD
+    local hudKaitunBtn = Instance.new("TextButton")
+    hudKaitunBtn.Size = UDim2.new(1, -16, 0, 24)
+    hudKaitunBtn.Position = UDim2.new(0, 8, 0, 96)
+    hudKaitunBtn.BackgroundColor3 = Color3.fromRGB(245, 230, 175)
+    hudKaitunBtn.Text = "⚡ BẬT/TẮT SUPER KAITUN"
+    hudKaitunBtn.TextColor3 = Color3.fromRGB(18, 18, 18)
+    hudKaitunBtn.TextSize = 10
+    hudKaitunBtn.Font = Enum.Font.GothamBold
+    hudKaitunBtn.ZIndex = 26
+    hudKaitunBtn.Parent = MiniHUD
+
+    local hudKaitunCorner = Instance.new("UICorner")
+    hudKaitunCorner.CornerRadius = UDim.new(0, 4)
+    hudKaitunCorner.Parent = hudKaitunBtn
+
+    hudKaitunBtn.Activated:Connect(function()
+        CPHub.Config.SuperKaitun = not CPHub.Config.SuperKaitun
+        CPHub.Config.AutoKaitun = CPHub.Config.SuperKaitun
+        CPHub.Config.AutoFarm = CPHub.Config.SuperKaitun
+        hudKaitunBtn.Text = CPHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
+        MasterConfigModule.Save()
+    end)
 
     -- Vòng lặp cập nhật Live Telemetry Mini HUD
     task.spawn(function()
@@ -4572,6 +4602,7 @@ local function CreateNativeUI()
                 hudRow2.Text = string.format("💰 Beli: $%s | 💎 Frags: %s", tostring(math.floor(beli / 1000)) .. "k", tostring(frags))
                 hudRow3.Text = "🎯 " .. tostring(CPHub.Config.SuperKaitunStatus or CPHub.Config.KaitunStatus or "Đang hoạt động...")
                 hudRow4.Text = string.format("📶 FPS: %d | Ping: %dms", currentFps, ping)
+                hudKaitunBtn.Text = CPHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
             end)
         end
     end)
@@ -4591,9 +4622,10 @@ local function CreateNativeUI()
     -- Content Container Below TitleBar
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Name = "ContentContainer"
-    ContentContainer.Size = UDim2.new(1, -24, 1, -68)
-    ContentContainer.Position = UDim2.new(0, 12, 0, 60)
+    ContentContainer.Size = UDim2.new(1, -20, 1, -66)
+    ContentContainer.Position = UDim2.new(0, 10, 0, 58)
     ContentContainer.BackgroundTransparency = 1
+    ContentContainer.ZIndex = 2
     ContentContainer.Parent = MainFrame
 
     local TabButtons = {}
@@ -4631,12 +4663,13 @@ local function CreateNativeUI()
     for i, icon in ipairs(TabIcons) do
         local btn = Instance.new("TextButton")
         btn.Name = "IconTab_" .. i
-        btn.Size = UDim2.new(0, 30, 0, 30)
+        btn.Size = UDim2.new(0, 32, 0, 32)
         btn.BackgroundColor3 = (i == 1) and UITheme.AccentColor or Color3.fromRGB(28, 30, 38)
         btn.Text = icon
         btn.TextColor3 = (i == 1) and UITheme.TextColorDark or Color3.fromRGB(200, 200, 210)
         btn.TextSize = 14
         btn.Font = UITheme.FontBold
+        btn.ZIndex = 11
         btn.Parent = IconTabBar
 
         local bCorner = Instance.new("UICorner")
@@ -4666,23 +4699,31 @@ local function CreateNativeUI()
         page.Size = UDim2.new(1, 0, 1, 0)
         page.BackgroundTransparency = 1
         page.Visible = (i == 1)
+        page.ZIndex = 2
         page.Parent = ContentContainer
 
         local leftCol = Instance.new("ScrollingFrame")
         leftCol.Name = "LeftColumn"
-        leftCol.Size = UDim2.new(0.49, 0, 1, 0)
+        leftCol.Size = UDim2.new(0.485, 0, 1, 0)
         leftCol.Position = UDim2.new(0, 0, 0, 0)
-        leftCol.BackgroundColor3 = Color3.fromRGB(14, 14, 16)
+        leftCol.BackgroundColor3 = Color3.fromRGB(16, 18, 24)
+        leftCol.BackgroundTransparency = 0
         leftCol.BorderSizePixel = 0
         leftCol.ScrollBarThickness = 3
         leftCol.ScrollBarImageColor3 = Color3.fromRGB(245, 230, 175)
         leftCol.AutomaticCanvasSize = Enum.AutomaticSize.Y
         leftCol.CanvasSize = UDim2.new(0, 0, 0, 0)
+        leftCol.ZIndex = 3
         leftCol.Parent = page
 
         local lCorner = Instance.new("UICorner")
         lCorner.CornerRadius = UDim.new(0, 8)
         lCorner.Parent = leftCol
+
+        local lStroke = Instance.new("UIStroke")
+        lStroke.Color = Color3.fromRGB(45, 48, 62)
+        lStroke.Thickness = 1
+        lStroke.Parent = leftCol
 
         local lList = Instance.new("UIListLayout")
         lList.Padding = UDim.new(0, 10)
@@ -4698,19 +4739,26 @@ local function CreateNativeUI()
 
         local rightCol = Instance.new("ScrollingFrame")
         rightCol.Name = "RightColumn"
-        rightCol.Size = UDim2.new(0.49, 0, 1, 0)
-        rightCol.Position = UDim2.new(0.51, 0, 0, 0)
-        rightCol.BackgroundColor3 = Color3.fromRGB(14, 14, 16)
+        rightCol.Size = UDim2.new(0.485, 0, 1, 0)
+        rightCol.Position = UDim2.new(0.515, 0, 0, 0)
+        rightCol.BackgroundColor3 = Color3.fromRGB(16, 18, 24)
+        rightCol.BackgroundTransparency = 0
         rightCol.BorderSizePixel = 0
         rightCol.ScrollBarThickness = 3
         rightCol.ScrollBarImageColor3 = Color3.fromRGB(245, 230, 175)
         rightCol.AutomaticCanvasSize = Enum.AutomaticSize.Y
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 0)
+        rightCol.ZIndex = 3
         rightCol.Parent = page
 
         local rCorner = Instance.new("UICorner")
         rCorner.CornerRadius = UDim.new(0, 8)
         rCorner.Parent = rightCol
+
+        local rStroke = Instance.new("UIStroke")
+        rStroke.Color = Color3.fromRGB(45, 48, 62)
+        rStroke.Thickness = 1
+        rStroke.Parent = rightCol
 
         local rList = Instance.new("UIListLayout")
         rList.Padding = UDim.new(0, 10)
@@ -5756,7 +5804,8 @@ local function CreateNativeUI()
         end
     end
 
-    CPHub:Debug("SUCCESS", "Replicated Screenshot UI Framework initialized successfully!")
+    SwitchTab(1)
+    CPHub:Debug("SUCCESS", "Giao diện CP Hub 14 Tab đã khởi tạo và kích hoạt Tab 1 hoàn tất!")
 end
 
 task.spawn(function()
