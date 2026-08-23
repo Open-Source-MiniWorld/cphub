@@ -834,26 +834,48 @@ end
 -- ============================================================================
 
 local PosMon = nil
-local function BringEnemy()
-    if not CPHub.Config.MobBring or not PosMon then return end
-    pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end)
+local function BringEnemy(targetPos, targetMobName)
+    if not CPHub.Config.MobBring then return end
+    local pos = targetPos or PosMon
+    if not pos then return end
+    
+    pcall(function() 
+        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) 
+        sethiddenproperty(LocalPlayer, "MaxSimulationRadius", math.huge)
+    end)
+    
     local list = {}
     local enemies = Workspace:FindFirstChild("Enemies")
-    if not enemies then return end
+    local chars = Workspace:FindFirstChild("Characters")
     local range = tonumber(CPHub.Config.MobBringRadius) or 350
-    for _, v in ipairs(enemies:GetChildren()) do
-        if #list >= 6 then break end
-        if v:IsA("Model") then
-            local hum = v:FindFirstChildOfClass("Humanoid")
-            local pp = v.PrimaryPart or v:FindFirstChild("HumanoidRootPart")
-            if hum and pp and hum.Health > 0 then
-                local dist = (pp.Position - PosMon).Magnitude
-                if dist <= range and dist > 5 then table.insert(list, { mob = v, hum = hum, pp = pp }) end
+    local targetCF = CFrame.new(pos)
+
+    local function CollectMobs(container)
+        if not container then return end
+        for _, v in ipairs(container:GetChildren()) do
+            if #list >= 12 then break end
+            if v:IsA("Model") then
+                local hum = v:FindFirstChildOfClass("Humanoid")
+                local pp = v.PrimaryPart or v:FindFirstChild("HumanoidRootPart")
+                if hum and pp and hum.Health > 0 then
+                    local isMatch = true
+                    if targetMobName and targetMobName ~= "" then
+                        isMatch = string.find(string.lower(v.Name), string.lower(targetMobName), 1, true) ~= nil
+                    end
+                    if isMatch then
+                        local dist = (pp.Position - pos).Magnitude
+                        if dist <= range and dist > 2 then 
+                            table.insert(list, { mob = v, hum = hum, pp = pp }) 
+                        end
+                    end
+                end
             end
         end
     end
-    if #list == 0 then return end
-    local targetCF = CFrame.new(PosMon)
+
+    CollectMobs(enemies)
+    if #list < 4 then CollectMobs(chars) end
+
     for _, it in ipairs(list) do
         local pp = it.pp
         local hum = it.hum
@@ -959,8 +981,69 @@ function AutoHakiModule.Init()
 end
 
 -- ============================================================================
--- 10. MAIN LEVEL & QUEST FARM MODULE
+-- 9.5. MASTER AUTO REDEEM 2X EXP CODE ENGINE
 -- ============================================================================
+
+local MasterAutoCodeModule = {
+    Codes = {
+        "Sub2CaptainMaui", "Sub2Fer999", "Enyu_is_Pro", "Magicbus", "JCWK",
+        "Starcodeheo", "Bluxxy", "fudd10_v2", "SUB2GAMERROBOT_EXP1", "Sub2NoobMaster123",
+        "Sub2UncleKizaru", "Sub2Daigrock", "Axiore", "TantaiGaming", "StrawHatMaine",
+        "Sub2OfficialNoobie", "SUB2NOOBMASTER123", "THEGREATACE", "SEATROLLING",
+        "24NOOB_FRUITS", "ADMIN_STRENGTH", "NOOB2PRO", "TY_FOR_WATCHING", "GAMERROBOT_YT",
+        "KITT_RESET", "NOOB_REFUND", "CHANDLER", "NEWTROLL", "KITTGAMIN"
+    },
+    UsedCodes = {},
+    LastCheckTime = 0
+}
+
+function MasterAutoCodeModule.RedeemNextCode()
+    local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+    local redeemRemote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("Redeem")
+    
+    for _, code in ipairs(MasterAutoCodeModule.Codes) do
+        if not MasterAutoCodeModule.UsedCodes[code] then
+            MasterAutoCodeModule.UsedCodes[code] = true
+            pcall(function()
+                if redeemRemote then
+                    redeemRemote:InvokeServer(code)
+                end
+                if commF then
+                    commF:InvokeServer("RedeemCode", code)
+                end
+            end)
+            CPHub:Debug("SUCCESS", "⚡ [Auto Code x2 EXP] Đã kích hoạt Code: " .. code)
+            return true
+        end
+    end
+    return false
+end
+
+function MasterAutoCodeModule.Init()
+    task.spawn(function()
+        task.wait(2)
+        local level = LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data:FindFirstChild("Level") and LocalPlayer.Data.Level.Value or 1
+        if level <= 15 or CPHub.Config.AutoRedeemCode then
+            MasterAutoCodeModule.RedeemNextCode()
+        end
+
+        while task.wait(60) do
+            pcall(function()
+                if CPHub.Config.AutoRedeemCode or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun then
+                    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+                    local main = playerGui and playerGui:FindFirstChild("Main")
+                    local expBoost = main and (main:FindFirstChild("ExpBoost") or main:FindFirstChild("2xExp") or main:FindFirstChild("Boost"))
+                    local has2xExp = expBoost and expBoost.Visible
+                    
+                    if not has2xExp and (os.clock() - MasterAutoCodeModule.LastCheckTime > 900) then
+                        MasterAutoCodeModule.LastCheckTime = os.clock()
+                        MasterAutoCodeModule.RedeemNextCode()
+                    end
+                end
+            end)
+        end
+    end)
+end
 
 -- ============================================================================
 -- 10. MAIN LEVEL & DYNAMIC FARM SELECTION MODULE
@@ -983,13 +1066,28 @@ function FarmEngineModule.Init()
                         local npcCF = GetQuestNPCCFrame(mobData.FullName, quest.QuestCFrame)
                         local mainGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("Main")
                         local questFrame = mainGui and mainGui:FindFirstChild("Quest")
-                        local hasQuest = questFrame and questFrame.Visible or false
+                        local isQuestActive = questFrame and questFrame.Visible or false
 
-                        if not hasQuest then
+                        local questTitle = ""
+                        pcall(function()
+                            if questFrame and questFrame:FindFirstChild("Container") and questFrame.Container:FindFirstChild("QuestTitle") and questFrame.Container.QuestTitle:FindFirstChild("Title") then
+                                questTitle = questFrame.Container.QuestTitle.Title.Text
+                            end
+                        end)
+
+                        -- Smart Quest & Island Transition Check
+                        if isQuestActive and questTitle ~= "" and not string.find(string.lower(questTitle), string.lower(quest.QuestName)) and not string.find(string.lower(questTitle), string.lower(mobData.MobName)) then
+                            pcall(function()
+                                ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
+                            end)
+                            isQuestActive = false
+                        end
+
+                        if not isQuestActive then
                             CPHub:Debug("INFO", "[Auto Level] Di chuyen nhan Quest: " .. quest.QuestName)
                             SmoothTweenTo(npcCF)
                             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                                if (LocalPlayer.Character.HumanoidRootPart.Position - npcCF.Position).Magnitude < 15 then
+                                if (LocalPlayer.Character.HumanoidRootPart.Position - npcCF.Position).Magnitude < 18 then
                                     pcall(function()
                                         local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                                         if commF then commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel) end
@@ -1001,9 +1099,9 @@ function FarmEngineModule.Init()
                             if targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
                                 local mobHRP = targetMob.HumanoidRootPart
                                 PosMon = mobHRP.Position
-                                BringEnemy()
+                                BringEnemy(mobHRP.Position, mobData.MobName)
                                 local tool = weaponSc(CPHub.Config.SelectWeapon)
-                                local reach = tonumber(CPHub.Config.AttackReach) or 20
+                                local reach = tonumber(CPHub.Config.AttackReach) or 18
                                 local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
                                 SmoothTweenTo(farmCF)
                             else
@@ -3300,11 +3398,26 @@ function MasterKaitunModule.Init()
                     local npcCF = GetQuestNPCCFrame(mobData.FullName, quest.QuestCFrame)
                     local mainGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("Main")
                     local questFrame = mainGui and mainGui:FindFirstChild("Quest")
-                    local hasQuest = questFrame and questFrame.Visible or false
+                    local isQuestActive = questFrame and questFrame.Visible or false
+
+                    local questTitle = ""
+                    pcall(function()
+                        if questFrame and questFrame:FindFirstChild("Container") and questFrame.Container:FindFirstChild("QuestTitle") and questFrame.Container.QuestTitle:FindFirstChild("Title") then
+                            questTitle = questFrame.Container.QuestTitle.Title.Text
+                        end
+                    end)
+
+                    -- Smart Quest & Island Transition Check
+                    if isQuestActive and questTitle ~= "" and not string.find(string.lower(questTitle), string.lower(quest.QuestName)) and not string.find(string.lower(questTitle), string.lower(mobData.MobName)) then
+                        pcall(function()
+                            ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
+                        end)
+                        isQuestActive = false
+                    end
 
                     CPHub.Config.KaitunStatus = string.format("[Sea %d] Level %d: Đang farm %s (Quest: %s)", currentSea, level, mobData.FullName, quest.QuestName)
 
-                    if not hasQuest then
+                    if not isQuestActive then
                         SmoothTweenTo(npcCF)
                         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                             if (LocalPlayer.Character.HumanoidRootPart.Position - npcCF.Position).Magnitude < 18 then
@@ -3319,9 +3432,9 @@ function MasterKaitunModule.Init()
                         if targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
                             local mobHRP = targetMob.HumanoidRootPart
                             PosMon = mobHRP.Position
-                            BringEnemy()
+                            BringEnemy(mobHRP.Position, mobData.MobName)
                             local tool = weaponSc(CPHub.Config.SelectWeapon)
-                            local reach = tonumber(CPHub.Config.AttackReach) or 20
+                            local reach = tonumber(CPHub.Config.AttackReach) or 18
                             local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
                             SmoothTweenTo(farmCF)
                         else
@@ -4215,6 +4328,7 @@ MasterSuperKaitunModule.Init()
 MasterDiscordWebhookModule.Init()
 MasterKitsuneIslandModule.Init()
 MasterLeviathanHunterModule.Init()
+MasterAutoCodeModule.Init()
 
 local function DestroyPreviousGuis()
     pcall(function()
@@ -5238,12 +5352,21 @@ local function CreateNativeUI()
         MasterConfigModule.Save()
         CPHub:Debug("SUCCESS", "Kích hoạt Super Kaitun Toàn Diện: " .. tostring(v))
     end)
+    AddCheckbox(Left1, "⚡ Tự Động Nhập Code x2 EXP Tối Ưu", CPHub.Config.AutoRedeemCode, function(v)
+        CPHub.Config.AutoRedeemCode = v
+        MasterConfigModule.Save()
+    end)
     AddCheckbox(Left1, "Tự Cày Tất Cả Kiếm & Súng Huyền Thoại", CPHub.Config.SuperKaitunFarmAllSwords, function(v)
         CPHub.Config.SuperKaitunFarmAllSwords = v
         MasterConfigModule.Save()
     end)
     AddCheckbox(Left1, "Tự Đổi & Thức Tỉnh Full 6 Tộc V4 Max Tier 5", CPHub.Config.SuperKaitunUnlockSixRacesV4, function(v)
         CPHub.Config.SuperKaitunUnlockSixRacesV4 = v
+        MasterConfigModule.Save()
+    end)
+    AddSlider(Left1, "Độ Cao Lơ Lửng Trên Đầu Quái", 10, 35, 18, "studs", function(v)
+        CPHub.Config.FarmHoverHeight = v
+        CPHub.Config.AttackReach = v
         MasterConfigModule.Save()
     end)
     AddSlider(Left1, "Mục Tiêu Beli Tích Lũy", 100, 1000, 1000, "M Beli", function(v)
@@ -5302,6 +5425,14 @@ local function CreateNativeUI()
     AddCreamButton(Left2, "🔄 Làm Mới Danh Sách Vũ Khí", function() CPHub:Debug("INFO", "Refreshed Weapon List") end)
     AddCheckbox(Left2, "Fast Attack V4 Siêu Tốc (0 Delay)", CPHub.Config.FastAttack, function(v)
         CPHub.Config.FastAttack = v
+        MasterConfigModule.Save()
+    end)
+    AddCheckbox(Left2, "Tự Động Gom Quái (Mob Bring)", CPHub.Config.MobBring, function(v)
+        CPHub.Config.MobBring = v
+        MasterConfigModule.Save()
+    end)
+    AddSlider(Left2, "Bán Kính Gom Quái (Mob Bring Radius)", 100, 500, 350, "studs", function(v)
+        CPHub.Config.MobBringRadius = v
         MasterConfigModule.Save()
     end)
     AddSlider(Left2, "Tốc Độ Tấn Công Fast Attack", 5, 50, 15, " ms", function(v)
