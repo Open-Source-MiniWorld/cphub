@@ -1,6 +1,6 @@
 --[[
     ╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
-    ║                        CP HUB </> - ULTIMATE ENTERPRISE MASTER ENGINE                            ║
+    ║                        LURNA HUB </> - ULTIMATE ENTERPRISE MASTER ENGINE                            ║
     ║                                 BLOX FRUITS ALL-IN-ONE AUTOMATION                               ║
     ║                                                                                                  ║
     ║   BẢN MASTER DÀI ĐẦY ĐỦ 100% TẤT CẢ CÁC TÍNH NĂNG, DỮ LIỆU & THUẬT TOÁN THỰC THI CHÍNH XÁC:        ║
@@ -23,7 +23,7 @@
     ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
 --]]
 
-local CPHub = {
+local LurnaHub = {
     Name = "CP hub </>",
     Version = "17.5.0 Master Enterprise Expanded Edition",
     DebugMode = true,
@@ -89,8 +89,8 @@ local CPHub = {
         AutoFarm = false,
         SelectFarmMode = "Level", -- "Level", "Bone", "Cake Prince", "Dough King", "Kitsune Ember"
         FastAttack = true,
-        FastAttackSpeed = 0.008,
-        AttackReach = 75,
+        FastAttackSpeed = 0.005,
+        AttackReach = 95,
         FarmHoverHeight = 28,
         AttackSpeed = 0.008,
         MobBring = true,
@@ -108,7 +108,7 @@ local CPHub = {
         AutoAwakenSkills = true,
         
         -- Opportunistic Auto Bounty While Farming
-        AutoBountyNearPlayer = true,
+        AutoBountyNearPlayer = false,
         BountyDetectRadius = 250,
         BountyBypassSkillRotation = true,
         
@@ -229,7 +229,7 @@ local CPHub = {
 -- 1. ADVANCED LOGGER & UNLOAD ENGINE
 -- ============================================================================
 
-function CPHub:SetAction(action, target)
+function LurnaHub:SetAction(action, target)
     if action and self.CurrentAction ~= action then self.CurrentAction = tostring(action) end
     if target and self.CurrentTarget ~= target then self.CurrentTarget = tostring(target) end
     if type(self.UpdateActionUI) == "function" then
@@ -237,7 +237,7 @@ function CPHub:SetAction(action, target)
     end
 end
 
-function CPHub:Debug(level, message)
+function LurnaHub:Debug(level, message)
     level = string.upper(level or "INFO")
     local timestamp = os.date("[%H:%M:%S]")
     local formattedMessage = string.format("%s [CP Hub - %s]: %s", timestamp, level, tostring(message))
@@ -256,7 +256,7 @@ function CPHub:Debug(level, message)
     end
 end
 
-function CPHub:Unload()
+function LurnaHub:Unload()
     self:Debug("WARN", "Dang thuc hien KILL HUB / UNLOAD SCRIPT HOAN TOAN...")
     
     -- Reset toàn bộ cờ Config
@@ -285,18 +285,18 @@ function CPHub:Unload()
     -- Xóa gỡ bỏ hoàn toàn Native ScreenGui khỏi CoreGui / PlayerGui
     pcall(function()
         local gui = GetSafeGui()
-        if gui:FindFirstChild("CPHub_NativeGUI") then
-            gui.CPHub_NativeGUI:Destroy()
+        if gui:FindFirstChild("LurnaHub_NativeGUI") then
+            gui.LurnaHub_NativeGUI:Destroy()
         end
-        if gui:FindFirstChild("CPHub_ESPFolder") then
-            gui.CPHub_ESPFolder:Destroy()
+        if gui:FindFirstChild("LurnaHub_ESPFolder") then
+            gui.LurnaHub_ESPFolder:Destroy()
         end
     end)
     
     self:Debug("SUCCESS", "CP Hub đã được gỡ bỏ hoàn toàn khỏi bộ nhớ!")
 end
 
-CPHub:Debug("SUCCESS", "Khoi tao CP hub </> Master Enterprise Expanded Engine v17.5.0!")
+LurnaHub:Debug("SUCCESS", "Khoi tao CP hub </> Master Enterprise Expanded Engine v17.5.0!")
 
 -- ============================================================================
 -- 2. ROBLOX SERVICES & SYSTEM INITIALIZER
@@ -343,36 +343,36 @@ local TargetGui = GetSafeGui()
 -- ============================================================================
 
 local MasterConfigModule = {}
-CPHub.ConfigFileName = "CPHub_Config_" .. tostring(LocalPlayer and LocalPlayer.UserId or "Guest") .. ".json"
+LurnaHub.ConfigFileName = "LurnaHub_Config_" .. tostring(LocalPlayer and LocalPlayer.UserId or "Guest") .. ".json"
 
 function MasterConfigModule.Save()
     pcall(function()
         if writefile and HttpService then
             local saveData = {}
-            for k, v in pairs(CPHub.Config) do
+            for k, v in pairs(LurnaHub.Config) do
                 if type(v) ~= "function" and type(v) ~= "thread" and type(v) ~= "userdata" then
                     saveData[k] = v
                 end
             end
             local jsonString = HttpService:JSONEncode(saveData)
-            writefile(CPHub.ConfigFileName, jsonString)
-            CPHub:Debug("SUCCESS", "Đã lưu cấu hình tự động vào file: " .. CPHub.ConfigFileName)
+            writefile(LurnaHub.ConfigFileName, jsonString)
+            LurnaHub:Debug("SUCCESS", "Đã lưu cấu hình tự động vào file: " .. LurnaHub.ConfigFileName)
         end
     end)
 end
 
 function MasterConfigModule.Load()
     pcall(function()
-        if isfile and readfile and isfile(CPHub.ConfigFileName) then
-            local rawContent = readfile(CPHub.ConfigFileName)
+        if isfile and readfile and isfile(LurnaHub.ConfigFileName) then
+            local rawContent = readfile(LurnaHub.ConfigFileName)
             local decoded = HttpService:JSONDecode(rawContent)
             if type(decoded) == "table" then
                 for k, v in pairs(decoded) do
-                    if CPHub.Config[k] ~= nil then
-                        CPHub.Config[k] = v
+                    if LurnaHub.Config[k] ~= nil then
+                        LurnaHub.Config[k] = v
                     end
                 end
-                CPHub:Debug("SUCCESS", "Đã nạp thành công cấu hình từ: " .. CPHub.ConfigFileName)
+                LurnaHub:Debug("SUCCESS", "Đã nạp thành công cấu hình từ: " .. LurnaHub.ConfigFileName)
             end
         else
             MasterConfigModule.Save()
@@ -382,10 +382,10 @@ end
 
 function MasterConfigModule.Reset()
     pcall(function()
-        if delfile and isfile and isfile(CPHub.ConfigFileName) then
-            delfile(CPHub.ConfigFileName)
+        if delfile and isfile and isfile(LurnaHub.ConfigFileName) then
+            delfile(LurnaHub.ConfigFileName)
         end
-        CPHub:Debug("WARN", "Đã đặt lại cấu hình Hub về mặc định!")
+        LurnaHub:Debug("WARN", "Đã đặt lại cấu hình Hub về mặc định!")
     end)
 end
 
@@ -494,9 +494,9 @@ local MasterIslandDatabase = {
 local MasterMobDatabase = {
     -- Sea 1 Mobs & Quests
     { FullName = "Bandit", MobName = "Bandit", LevelRequest = 1, IsBoss = false, Quest = { QuestName = "BanditsQuest1", QuestCFrame = CFrame.new(1060, 16, 1547), QuestLevel = 1, QuestNPC = "Bandit Quest Giver" }, SpawnLocation = { CFrame.new(1038, 16, 1547), CFrame.new(1080, 16, 1580), CFrame.new(1020, 16, 1510), CFrame.new(1050, 16, 1600) }, ExpReward = 300, BeliReward = 250 },
-    { FullName = "Monkey", MobName = "Monkey", LevelRequest = 15, IsBoss = false, Quest = { QuestName = "JungleQuest", QuestCFrame = CFrame.new(-1601, 37, 153), QuestLevel = 1, QuestNPC = "Jungle Adventurer" }, SpawnLocation = { CFrame.new(-1620, 37, 140), CFrame.new(-1580, 37, 170), CFrame.new(-1640, 37, 120), CFrame.new(-1600, 37, 200) }, ExpReward = 800, BeliReward = 500 },
-    { FullName = "Gorilla", MobName = "Gorilla", LevelRequest = 20, IsBoss = false, Quest = { QuestName = "JungleQuest", QuestCFrame = CFrame.new(-1601, 37, 153), QuestLevel = 2, QuestNPC = "Jungle Adventurer" }, SpawnLocation = { CFrame.new(-1240, 6, -490), CFrame.new(-1210, 6, -520), CFrame.new(-1270, 6, -460), CFrame.new(-1220, 6, -450) }, ExpReward = 1200, BeliReward = 700 },
-    { FullName = "The Gorilla King", MobName = "The Gorilla King", LevelRequest = 25, IsBoss = true, Quest = { QuestName = "JungleQuest", QuestCFrame = CFrame.new(-1601, 37, 153), QuestLevel = 3, QuestNPC = "Jungle Adventurer" }, SpawnLocation = { CFrame.new(-1130, 6, -495) }, ExpReward = 4500, BeliReward = 2000 },
+    { FullName = "Monkey", MobName = "Monkey", LevelRequest = 10, IsBoss = false, Quest = { QuestName = "JungleQuest", QuestCFrame = CFrame.new(-1601, 37, 153), QuestLevel = 1, QuestNPC = "Jungle Adventurer" }, SpawnLocation = { CFrame.new(-1620, 37, 140), CFrame.new(-1580, 37, 170), CFrame.new(-1640, 37, 120), CFrame.new(-1600, 37, 200) }, ExpReward = 800, BeliReward = 500 },
+    { FullName = "Gorilla", MobName = "Gorilla", LevelRequest = 15, IsBoss = false, Quest = { QuestName = "JungleQuest", QuestCFrame = CFrame.new(-1601, 37, 153), QuestLevel = 2, QuestNPC = "Jungle Adventurer" }, SpawnLocation = { CFrame.new(-1240, 6, -490), CFrame.new(-1210, 6, -520), CFrame.new(-1270, 6, -460), CFrame.new(-1220, 6, -450) }, ExpReward = 1200, BeliReward = 700 },
+    { FullName = "The Gorilla King", MobName = "The Gorilla King", LevelRequest = 20, IsBoss = true, Quest = { QuestName = "JungleQuest", QuestCFrame = CFrame.new(-1601, 37, 153), QuestLevel = 3, QuestNPC = "Jungle Adventurer" }, SpawnLocation = { CFrame.new(-1130, 6, -495) }, ExpReward = 4500, BeliReward = 2000 },
     { FullName = "Pirate", MobName = "Pirate", LevelRequest = 30, IsBoss = false, Quest = { QuestName = "BuggyQuest1", QuestCFrame = CFrame.new(-1140, 4, 3828), QuestLevel = 1, QuestNPC = "Pirate Adventurer" }, SpawnLocation = { CFrame.new(-1200, 4, 3880), CFrame.new(-1100, 4, 3790), CFrame.new(-1160, 4, 3850), CFrame.new(-1180, 4, 3820) }, ExpReward = 2000, BeliReward = 1000 },
     { FullName = "Brute", MobName = "Brute", LevelRequest = 40, IsBoss = false, Quest = { QuestName = "BuggyQuest1", QuestCFrame = CFrame.new(-1140, 4, 3828), QuestLevel = 2, QuestNPC = "Pirate Adventurer" }, SpawnLocation = { CFrame.new(-1370, 4, 4000), CFrame.new(-1320, 4, 3960), CFrame.new(-1350, 4, 4040) }, ExpReward = 3500, BeliReward = 1500 },
     { FullName = "Bobby", MobName = "Bobby", LevelRequest = 55, IsBoss = true, Quest = { QuestName = "BuggyQuest1", QuestCFrame = CFrame.new(-1140, 4, 3828), QuestLevel = 3, QuestNPC = "Pirate Adventurer" }, SpawnLocation = { CFrame.new(-1130, 14, 4080) }, ExpReward = 8000, BeliReward = 3500 },
@@ -780,19 +780,67 @@ end
 
 local TeleportState = { ActiveTween = nil, TargetCFrame = nil, IsTeleporting = false }
 
+local function IsCurrentQuestActive(targetQuestName, targetMobName)
+    local active = false
+    pcall(function()
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if not playerGui then return end
+        
+        -- Check 1: Main.Quest UI (Standard across all Blox Fruits versions)
+        local main = playerGui:FindFirstChild("Main")
+        if main and main:FindFirstChild("Quest") and main.Quest.Visible then
+            active = true
+            return
+        end
+        
+        -- Check 2: Direct Quest UI (Mobile & Custom Executor layouts)
+        local directQuest = playerGui:FindFirstChild("Quest")
+        if directQuest and directQuest.Visible then
+            active = true
+            return
+        end
+    end)
+    return active
+end
+
 local function MaintainAntiGravity()
     pcall(function()
         local char = LocalPlayer.Character
         if not char or not char:FindFirstChild("HumanoidRootPart") then return end
         local hrp = char.HumanoidRootPart
-        hrp.AssemblyLinearVelocity = Vector3.zero
-        hrp.AssemblyAngularVelocity = Vector3.zero
+        
+        local bv = hrp:FindFirstChild("Lurna_FlyVelocity")
+        if not bv then
+            bv = Instance.new("BodyVelocity")
+            bv.Name = "Lurna_FlyVelocity"
+            bv.Parent = hrp
+        end
+
+        local bg = hrp:FindFirstChild("Lurna_FlyGyro")
+        if not bg then
+            bg = Instance.new("BodyGyro")
+            bg.Name = "Lurna_FlyGyro"
+            bg.P = 9e4
+            bg.Parent = hrp
+        end
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.CFrame = CFrame.new(hrp.Position)
+
+        -- If currently tweening, allow TweenService to move uninhibited; when hovering, lock in place
+        if TeleportState.IsTeleporting then
+            bv.MaxForce = Vector3.new(0, 0, 0)
+        else
+            bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            bv.Velocity = Vector3.zero
+            hrp.AssemblyLinearVelocity = Vector3.zero
+            hrp.AssemblyAngularVelocity = Vector3.zero
+        end
     end)
 end
 
--- PERSISTENT ANTI-GRAVITY & NOCLIP LOOP (RUNSERVICE STEPPED)
+-- PERSISTENT NOCLIP & FLIGHT HELPER (RUNSERVICE STEPPED)
 RunService.Stepped:Connect(function()
-    local isAnyFarmActive = TeleportState.IsTeleporting or CPHub.Config.AutoFarm or CPHub.Config.AutoFarmBoss or CPHub.Config.AutoRaid or CPHub.Config.AutoChest or CPHub.Config.AutoFarmMaterial or CPHub.Config.AutoSeaBeast or CPHub.Config.AutoTerrorShark or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun or CPHub.Config.AutoCompleteTrial or CPHub.Config.AutoBounty or CPHub.Config.AutoObtainCDK or CPHub.Config.AutoObtainSoulGuitar or CPHub.Config.AutoObtainTTK or CPHub.Config.AutoObtainSaber
+    local isAnyFarmActive = TeleportState.IsTeleporting or LurnaHub.Config.AutoFarm or LurnaHub.Config.AutoFarmBoss or LurnaHub.Config.AutoRaid or LurnaHub.Config.AutoChest or LurnaHub.Config.AutoFarmMaterial or LurnaHub.Config.AutoSeaBeast or LurnaHub.Config.AutoTerrorShark or LurnaHub.Config.AutoKaitun or LurnaHub.Config.SuperKaitun or LurnaHub.Config.AutoCompleteTrial or LurnaHub.Config.AutoBounty or LurnaHub.Config.AutoObtainCDK or LurnaHub.Config.AutoObtainSoulGuitar or LurnaHub.Config.AutoObtainTTK or LurnaHub.Config.AutoObtainSaber
     if isAnyFarmActive then
         pcall(function()
             local char = LocalPlayer.Character
@@ -802,28 +850,27 @@ RunService.Stepped:Connect(function()
                         part.CanCollide = false 
                     end
                 end
-                local hrp = char:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    hrp.AssemblyLinearVelocity = Vector3.zero
-                    hrp.AssemblyAngularVelocity = Vector3.zero
-                end
+                MaintainAntiGravity()
             end
         end)
     end
 end)
 
 local function SmoothTweenTo(targetCFrame, speedOverride)
-    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+    if not targetCFrame then return end
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChild("Humanoid")
+    if not hrp or not hum or hum.Health <= 0 then return end
 
-    local hrp = LocalPlayer.Character.HumanoidRootPart
     local distance = (targetCFrame.Position - hrp.Position).Magnitude
+    local speed = speedOverride or tonumber(LurnaHub.Config.TweenSpeed) or 300
+    if speed < 100 then speed = 300 end
 
-    MaintainAntiGravity()
-
-    -- Khoảng cách cực ngắn (< 12 studs): Định vị mượt trực tiếp, không tạo tween thừa
-    if distance < 12 then 
+    -- Cự ly gần (< 15 studs): Snap trực tiếp
+    if distance < 15 then 
         if TeleportState.ActiveTween then
-            TeleportState.ActiveTween:Cancel()
+            pcall(function() TeleportState.ActiveTween:Cancel() end)
             TeleportState.ActiveTween = nil
         end
         TeleportState.IsTeleporting = false
@@ -832,20 +879,20 @@ local function SmoothTweenTo(targetCFrame, speedOverride)
         return 
     end
 
-    -- Nếu đang Tween đến điểm rất gần mục tiêu (< 15 studs), giữ nguyên Tween cũ tránh xung đột
-    if TeleportState.IsTeleporting and TeleportState.TargetCFrame and (TeleportState.TargetCFrame.Position - targetCFrame.Position).Magnitude < 15 then
+    -- Nếu đang bay đến cùng một mục tiêu gần kề (< 10 studs), không ngắt quãng tween
+    if TeleportState.IsTeleporting and TeleportState.TargetCFrame and (TeleportState.TargetCFrame.Position - targetCFrame.Position).Magnitude < 10 then
         return TeleportState.ActiveTween
     end
 
     if TeleportState.ActiveTween then 
-        TeleportState.ActiveTween:Cancel() 
+        pcall(function() TeleportState.ActiveTween:Cancel() end)
         TeleportState.ActiveTween = nil
     end
+    
     TeleportState.IsTeleporting = true
     TeleportState.TargetCFrame = targetCFrame
 
-    local currentSpeed = speedOverride or tonumber(CPHub.Config.TweenSpeed) or 270
-    local duration = distance / math.max(currentSpeed, 100)
+    local duration = distance / speed
     local tween = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = targetCFrame })
     TeleportState.ActiveTween = tween
     tween:Play()
@@ -862,13 +909,9 @@ local function SmoothTweenTo(targetCFrame, speedOverride)
     return tween
 end
 
--- ============================================================================
--- 7. MOB BRING ENGINE (SIMULATION RADIUS MAGNET)
--- ============================================================================
-
 local PosMon = nil
 local function BringEnemy(targetPos, targetMobName)
-    if not CPHub.Config.MobBring then return end
+    if not LurnaHub.Config.MobBring then return end
     local pos = targetPos or PosMon
     if not pos then return end
     
@@ -880,7 +923,7 @@ local function BringEnemy(targetPos, targetMobName)
     local list = {}
     local enemies = Workspace:FindFirstChild("Enemies")
     local chars = Workspace:FindFirstChild("Characters")
-    local range = tonumber(CPHub.Config.MobBringRadius) or 350
+    local range = tonumber(LurnaHub.Config.MobBringRadius) or 350
     local targetCF = CFrame.new(pos)
 
     local function CollectMobs(container)
@@ -925,9 +968,14 @@ end
 -- 8. FAST ATTACK ENGINE (2-GATE REMOTE EXECUTION)
 -- ============================================================================
 
-local FastAttackModule = {}
+local FastAttackModule = {
+    IsRunning = false,
+    AttackGates = 6,
+    LastAttackTick = 0
+}
+
 function FastAttackModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Fast Attack V4 Overclocked Multi-Hit Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Fast Attack V4 Super Charged Hexa-Gate 0-Delay Multi-Hit Engine...")
     
     local Net = nil
     local RegisterHit = nil
@@ -949,63 +997,128 @@ function FastAttackModule.Init()
         end
     end)
 
-    task.spawn(function()
-        while task.wait(tonumber(CPHub.Config.FastAttackSpeed) or 0.008) do
-            if CPHub.Config.FastAttack and (CPHub.Config.AutoFarm or CPHub.Config.AutoFarmBoss or CPHub.Config.AutoRaid or CPHub.Config.AutoFarmMaterial or CPHub.Config.AutoSeaBeast or CPHub.Config.AutoTerrorShark or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun) then
-                pcall(function()
-                    local char = LocalPlayer.Character
-                    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-                    local hrp = char.HumanoidRootPart
-                    local tool = char:FindFirstChildOfClass("Tool") or weaponSc(CPHub.Config.SelectWeapon)
-                    if not tool then return end
-
-                    local attackReach = tonumber(CPHub.Config.AttackReach) or 75
-                    local hits = {}
-                    local primaryPart = nil
-
-                    local enemies = Workspace:FindFirstChild("Enemies")
-                    if enemies then
-                        for _, mob in ipairs(enemies:GetChildren()) do
-                            local mobHRP = mob:FindFirstChild("HumanoidRootPart") or mob:FindFirstChild("Head") or (mob:IsA("BasePart") and mob)
-                            local mobHum = mob:FindFirstChildOfClass("Humanoid")
-                            if mobHRP and mobHum and mobHum.Health > 0 then
-                                if (mobHRP.Position - hrp.Position).Magnitude <= attackReach then
-                                    table.insert(hits, { mob, mobHRP })
-                                    if not primaryPart then primaryPart = mobHRP end
-                                    if #hits >= 15 then break end
-                                end
-                            end
-                        end
+    -- Animation Cancellation & Cooldown Remover
+    local function CancelAttackCooldown(char)
+        pcall(function()
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum and hum:FindFirstChildOfClass("Animator") then
+                for _, track in ipairs(hum.Animator:GetPlayingAnimationTracks()) do
+                    if track.Name:lower():find("attack") or track.Name:lower():find("slash") or track.Name:lower():find("punch") then
+                        track:AdjustSpeed(999)
                     end
-
-                    local chars = Workspace:FindFirstChild("Characters")
-                    if #hits < 5 and chars then
-                        for _, mob in ipairs(chars:GetChildren()) do
-                            if mob ~= char then
-                                local mobHRP = mob:FindFirstChild("HumanoidRootPart") or mob:FindFirstChild("Head")
-                                local mobHum = mob:FindFirstChildOfClass("Humanoid")
-                                if mobHRP and mobHum and mobHum.Health > 0 and (mobHRP.Position - hrp.Position).Magnitude <= attackReach then
-                                    table.insert(hits, { mob, mobHRP })
-                                    if not primaryPart then primaryPart = mobHRP end
-                                    if #hits >= 15 then break end
-                                end
-                            end
-                        end
-                    end
-
-                    if #hits > 0 and primaryPart then
-                        for _ = 1, 2 do
-                            if RegisterAttack then
-                                pcall(function() RegisterAttack:FireServer(0) end)
-                            end
-                            if RegisterHit then
-                                pcall(function() RegisterHit:FireServer(primaryPart, hits) end)
-                            end
-                        end
-                    end
-                    pcall(function() tool:Activate() end)
-                end)
+                end
             end
+        end)
+    end
+
+    -- Core Hexa-Gate Fast Attack Worker
+    local function ExecuteAttackBatch()
+        local char = LocalPlayer.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        local hrp = char.HumanoidRootPart
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum or hum.Health <= 0 then return end
+
+        local tool = char:FindFirstChildOfClass("Tool") or weaponSc(LurnaHub.Config.SelectWeapon)
+        local attackReach = tonumber(LurnaHub.Config.AttackReach) or 95
+        -- Tự động mở rộng tầm đánh lên 125 studs nếu đang hóa khổng lồ (Buddha / T-Rex / Mammoth)
+        pcall(function()
+            if char and (char:FindFirstChild("BigHumanoid") or char:FindFirstChild("Transform") or char:FindFirstChild("BuddhaTransform")) then
+                attackReach = math.max(attackReach, 125)
+            end
+        end)
+
+        local hits = {}
+        local primaryPart = nil
+
+        local enemies = Workspace:FindFirstChild("Enemies")
+        if enemies then
+            for _, mob in ipairs(enemies:GetChildren()) do
+                local mobHRP = mob:FindFirstChild("HumanoidRootPart") or mob:FindFirstChild("Head") or (mob:IsA("BasePart") and mob)
+                local mobHum = mob:FindFirstChildOfClass("Humanoid")
+                if mobHRP and mobHum and mobHum.Health > 0 then
+                    if (mobHRP.Position - hrp.Position).Magnitude <= attackReach then
+                        table.insert(hits, { mob, mobHRP })
+                        if not primaryPart then primaryPart = mobHRP end
+                        if #hits >= 25 then break end
+                    end
+                end
+            end
+        end
+
+        local chars = Workspace:FindFirstChild("Characters")
+        if #hits < 10 and chars then
+            for _, mob in ipairs(chars:GetChildren()) do
+                if mob ~= char then
+                    local mobHRP = mob:FindFirstChild("HumanoidRootPart") or mob:FindFirstChild("Head")
+                    local mobHum = mob:FindFirstChildOfClass("Humanoid")
+                    if mobHRP and mobHum and mobHum.Health > 0 and (mobHRP.Position - hrp.Position).Magnitude <= attackReach then
+                        table.insert(hits, { mob, mobHRP })
+                        if not primaryPart then primaryPart = mobHRP end
+                        if #hits >= 25 then break end
+                    end
+                end
+            end
+        end
+
+        if #hits == 0 or not primaryPart then return end
+
+        -- Cổng 1 & 2: RemoteEvent Net Multi-Hit Dispatch (RegisterAttack + RegisterHit)
+        for _ = 1, 3 do
+            if RegisterAttack then pcall(function() RegisterAttack:FireServer(0) end) end
+            if RegisterHit then pcall(function() RegisterHit:FireServer(primaryPart, hits) end) end
+        end
+
+        -- Cổng 3: Tool Direct Hardware Activation
+        if tool then
+            pcall(function() 
+                tool:Activate() 
+                CancelAttackCooldown(char)
+            end)
+        end
+
+        -- Cổng 4: Virtual Input Mouse Down M1 Click
+        pcall(function()
+            VirtualUser:CaptureController()
+            VirtualUser:Button1Down(Vector2.zero, Camera.CFrame)
+            VirtualUser:Button1Up(Vector2.zero, Camera.CFrame)
+        end)
+
+        -- Cổng 5: CommF Remote Function Attack Dispatch
+        local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+        if commF then
+            pcall(function() commF:InvokeServer("Attack", primaryPart) end)
+        end
+
+        -- Cổng 6: Fruit / Fighting Style Special M1 Remote Gate
+        pcall(function()
+            local combatRemote = ReplicatedStorage:FindFirstChild("CombatRemote") or (ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("Combat"))
+            if combatRemote then
+                combatRemote:FireServer("Hit", primaryPart, hits)
+            end
+        end)
+    end
+
+    -- Multi-Threaded Parallel Attack Dispatcher (0-Delay)
+    task.spawn(function()
+        while true do
+            local speed = tonumber(LurnaHub.Config.FastAttackSpeed) or 0.005
+            if speed < 0.002 then speed = 0.002 end
+            task.wait(speed)
+            
+            local isAnyFarmRunning = LurnaHub.Config.FastAttack and (LurnaHub.Config.AutoFarm or LurnaHub.Config.AutoFarmBoss or LurnaHub.Config.AutoRaid or LurnaHub.Config.AutoFarmMaterial or LurnaHub.Config.AutoSeaBeast or LurnaHub.Config.AutoTerrorShark or LurnaHub.Config.AutoKaitun or LurnaHub.Config.SuperKaitun or LurnaHub.Config.AutoBounty)
+            if isAnyFarmRunning then
+                pcall(ExecuteAttackBatch)
+            end
+        end
+    end)
+
+    -- Secondary Micro Burst Thread on Heartbeat (Bypass Frame Drops)
+    RunService.Heartbeat:Connect(function()
+        local isAnyFarmRunning = LurnaHub.Config.FastAttack and (LurnaHub.Config.AutoFarm or LurnaHub.Config.AutoFarmBoss or LurnaHub.Config.AutoRaid or LurnaHub.Config.AutoFarmMaterial or LurnaHub.Config.AutoSeaBeast or LurnaHub.Config.AutoTerrorShark or LurnaHub.Config.AutoKaitun or LurnaHub.Config.SuperKaitun or LurnaHub.Config.AutoBounty)
+        if isAnyFarmRunning and (os.clock() - FastAttackModule.LastAttackTick) > 0.04 then
+            FastAttackModule.LastAttackTick = os.clock()
+            pcall(ExecuteAttackBatch)
         end
     end)
 end
@@ -1016,24 +1129,27 @@ end
 
 local AutoHakiModule = {}
 function AutoHakiModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Auto Buso & Ken Haki Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Auto Buso & Ken Haki Engine...")
     task.spawn(function()
         while task.wait(3) do
             pcall(function()
                 local char = LocalPlayer.Character
                 if not char then return end
                 -- Buso (Armament Haki)
-                if CPHub.Config.AutoBuso and not char:FindFirstChild("HasBuso") then
-                    ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
+                if LurnaHub.Config.AutoBuso and not char:FindFirstChild("HasBuso") then
+                    pcall(function()
+                        local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+                        if commF then commF:InvokeServer("Buso") end
+                    end)
                 end
                 -- Ken (Observation Haki)
-                if CPHub.Config.AutoKen then
+                if LurnaHub.Config.AutoKen then
                     local kenGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("Ken")
                     if not kenGui then
                         if ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommE") then
                             ReplicatedStorage.Remotes.CommE:FireServer("Ken", true)
                         elseif ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_") then
-                            ReplicatedStorage.Remotes.CommF_:InvokeServer("Ken", true)
+                            pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("Ken", true) end)
                         end
                     end
                 end
@@ -1048,10 +1164,10 @@ end
 
 local MasterGlobalAutoStatEngine = {}
 function MasterGlobalAutoStatEngine.Init()
-    CPHub:Debug("INFO", "Khoi chay Global Auto Stat Allocator Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Global Auto Stat Allocator Engine...")
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.AutoFarm or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun or CPHub.Config.AutoStatMelee or CPHub.Config.AutoStatSword then
+            if LurnaHub.Config.AutoFarm or LurnaHub.Config.AutoKaitun or LurnaHub.Config.SuperKaitun or LurnaHub.Config.AutoStatMelee or LurnaHub.Config.AutoStatSword then
                 pcall(function()
                     local data = LocalPlayer:FindFirstChild("Data")
                     if not data or not data:FindFirstChild("Points") then return end
@@ -1067,7 +1183,7 @@ function MasterGlobalAutoStatEngine.Init()
                     local sword = stats and stats:FindFirstChild("Sword") and stats.Sword.Level.Value or 1
                     local maxStat = 2550
 
-                    local weapon = CPHub.Config.SelectWeapon or "Melee"
+                    local weapon = LurnaHub.Config.SelectWeapon or "Melee"
 
                     if weapon == "Sword" then
                         -- Build Kiếm: 70% Sword, 30% Melee/Defense
@@ -1132,7 +1248,7 @@ function MasterAutoCodeModule.RedeemNextCode()
                     commF:InvokeServer("RedeemCode", code)
                 end
             end)
-            CPHub:Debug("SUCCESS", "⚡ [Auto Code x2 EXP] Đã kích hoạt Code: " .. code)
+            LurnaHub:Debug("SUCCESS", "⚡ [Auto Code x2 EXP] Đã kích hoạt Code: " .. code)
             return true
         end
     end
@@ -1146,7 +1262,7 @@ function MasterAutoCodeModule.Init()
 
         while task.wait(30) do
             pcall(function()
-                if CPHub.Config.AutoRedeemCode or CPHub.Config.AutoKaitun or CPHub.Config.SuperKaitun or CPHub.Config.AutoFarm then
+                if LurnaHub.Config.AutoRedeemCode or LurnaHub.Config.AutoKaitun or LurnaHub.Config.SuperKaitun or LurnaHub.Config.AutoFarm then
                     local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
                     local main = playerGui and playerGui:FindFirstChild("Main")
                     local expBoost = main and (main:FindFirstChild("ExpBoost") or main:FindFirstChild("2xExp") or main:FindFirstChild("Boost"))
@@ -1168,7 +1284,7 @@ end
 
 local LastSnapIsland = ""
 local function SnapSpawnIslandBypass(targetNPCCFrame, targetIslandName)
-    if not CPHub.Config.SnapSpawnBypass then return false end
+    if not LurnaHub.Config.SnapSpawnBypass then return false end
     if not targetNPCCFrame then return false end
     if LastSnapIsland == targetIslandName then return false end
 
@@ -1179,7 +1295,7 @@ local function SnapSpawnIslandBypass(targetNPCCFrame, targetIslandName)
 
     local dist = (hrp.Position - targetNPCCFrame.Position).Magnitude
     if dist > 1800 then
-        CPHub:SetAction("⚡ [Snap-Spawn Bypass] Đang nhảy chớp nhoáng sang " .. tostring(targetIslandName), "Lưu Spawn & Reset 2s")
+        LurnaHub:SetAction("⚡ [Snap-Spawn Bypass] Đang nhảy chớp nhoáng sang " .. tostring(targetIslandName), "Lưu Spawn & Reset 2s")
         
         hrp.CFrame = targetNPCCFrame * CFrame.new(0, 3, 0)
         task.wait(0.08)
@@ -1205,23 +1321,23 @@ end
 
 local FarmEngineModule = {}
 function FarmEngineModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Vong lap Auto Farm Multi-Mode Main Loop...")
+    LurnaHub:Debug("INFO", "Khoi chay Vong lap Auto Farm Multi-Mode Main Loop...")
     task.spawn(function()
         while task.wait(0.3) do
-            if CPHub.Config.AutoFarm then
+            if LurnaHub.Config.AutoFarm then
                 pcall(function()
-                    local mode = CPHub.Config.SelectFarmMode or "Level"
+                    local mode = LurnaHub.Config.SelectFarmMode or "Level"
                     local Enemies = Workspace:FindFirstChild("Enemies")
 
                     -- SĂN BOUNTY NGƯỜI CHƠI GẦN KHI ĐANG FARM (M1 BYPASS SKILL ROTATION)
-                    if CPHub.Config.AutoBountyNearPlayer and MasterPvPBountyModule then
-                        local bountyTarget = MasterPvPBountyModule.GetNearbyEligiblePlayer(tonumber(CPHub.Config.BountyDetectRadius) or 250)
+                    if LurnaHub.Config.AutoBountyNearPlayer and MasterPvPBountyModule then
+                        local bountyTarget = MasterPvPBountyModule.GetNearbyEligiblePlayer(tonumber(LurnaHub.Config.BountyDetectRadius) or 250)
                         if bountyTarget and bountyTarget.Character and bountyTarget.Character:FindFirstChild("HumanoidRootPart") and bountyTarget.Character:FindFirstChild("Humanoid") and bountyTarget.Character.Humanoid.Health > 0 then
                             local tHRP = bountyTarget.Character:FindFirstChild("HumanoidRootPart")
                             local tData = bountyTarget:FindFirstChild("Data")
                             local tLevel = tData and tData:FindFirstChild("Level") and tData.Level.Value or "N/A"
                             if tHRP then
-                                CPHub:SetAction("⚔️ [Auto Bounty] Đang đập người chơi gần: " .. bountyTarget.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V Bypass M1")
+                                LurnaHub:SetAction("⚔️ [Auto Bounty] Đang đập người chơi gần: " .. bountyTarget.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V Bypass M1")
                                 SmoothTweenTo(tHRP.CFrame * CFrame.new(0, 4, -3))
                                 MasterPvPBountyModule.ExecuteSkillCombo(bountyTarget.Character)
                                 return
@@ -1233,46 +1349,23 @@ function FarmEngineModule.Init()
                         -- MODE 1: AUTO LEVEL / QUEST
                         local mobData = GetCurrentQuestData()
                         local quest = mobData.Quest
-                        local npcCF = GetQuestNPCCFrame(mobData.FullName, quest.QuestCFrame)
 
-                        -- Snap-Spawn Island Transition Bypass
-                        if SnapSpawnIslandBypass(npcCF, mobData.FullName) then
-                            return
-                        end
-
-                        local mainGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("Main")
-                        local questFrame = mainGui and mainGui:FindFirstChild("Quest")
-                        local isQuestActive = questFrame and questFrame.Visible or false
-
-                        local questTitle = ""
-                        pcall(function()
-                            if questFrame and questFrame:FindFirstChild("Container") and questFrame.Container:FindFirstChild("QuestTitle") and questFrame.Container.QuestTitle:FindFirstChild("Title") then
-                                questTitle = questFrame.Container.QuestTitle.Title.Text
-                            end
-                        end)
-
-                        -- Smart Quest & Island Transition Check
-                        if isQuestActive and questTitle ~= "" and not string.find(string.lower(questTitle), string.lower(quest.QuestName)) and not string.find(string.lower(questTitle), string.lower(mobData.MobName)) then
-                            CPHub:SetAction("Đủ level -> Hủy quest cũ & chuyển bãi mới", "Mục tiêu: " .. mobData.FullName)
-                            pcall(function()
-                                ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
-                            end)
-                            isQuestActive = false
-                        end
+                        local isQuestActive = IsCurrentQuestActive(quest.QuestName, mobData.MobName)
 
                         if not isQuestActive then
-                            CPHub:SetAction("Đang bay nhận Quest: " .. quest.QuestName, "NPC: " .. (quest.QuestNPC or mobData.FullName))
-                            SmoothTweenTo(npcCF)
-                            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                                if (LocalPlayer.Character.HumanoidRootPart.Position - npcCF.Position).Magnitude < 18 then
-                                    pcall(function()
-                                        local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
-                                        if commF then 
-                                            commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel)
-                                            CPHub:SetAction("Đã nhận Quest: " .. quest.QuestName, "Bắt đầu bay farm quái")
-                                        end
-                                    end)
-                                end
+                            LurnaHub:SetAction("Đang bay nhận Quest: " .. quest.QuestName, "NPC: " .. (quest.QuestNPC or mobData.FullName))
+                            SmoothTweenTo(quest.QuestCFrame)
+                            
+                            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                            if hrp and (hrp.Position - quest.QuestCFrame.Position).Magnitude < 40 then
+                                pcall(function()
+                                    local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+                                    if commF then 
+                                        commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel)
+                                        LurnaHub:SetAction("Đã nhận Quest: " .. quest.QuestName, "Bắt đầu bay farm quái")
+                                    end
+                                end)
+                                task.wait(0.2)
                             end
                         else
                             local targetMob = GetTargetEnemy(mobData.MobName) or GetTargetEnemy(mobData.FullName)
@@ -1280,15 +1373,15 @@ function FarmEngineModule.Init()
                                 local mobHRP = targetMob.HumanoidRootPart
                                 PosMon = mobHRP.Position
                                 BringEnemy(mobHRP.Position, mobData.MobName)
-                                local tool = weaponSc(CPHub.Config.SelectWeapon)
-                                local hoverHeight = tonumber(CPHub.Config.FarmHoverHeight) or 8
-                                local farmCF = (mobHRP.CFrame * CFrame.new(0, hoverHeight, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
-                                CPHub:SetAction("Đang lơ lửng đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
+                                local tool = weaponSc(LurnaHub.Config.SelectWeapon)
+                                local hoverHeight = tonumber(LurnaHub.Config.FarmHoverHeight) or 15
+                                local farmCF = mobHRP.CFrame * CFrame.new(0, hoverHeight, 0)
+                                LurnaHub:SetAction("Đang bay đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
                                 SmoothTweenTo(farmCF)
                             else
-                                local spawnCF = mobData.SpawnLocation and mobData.SpawnLocation[1] or quest.QuestCFrame
-                                CPHub:SetAction("Đang chờ quái hồi sinh", "Khu vực: " .. mobData.FullName)
-                                SmoothTweenTo(spawnCF * CFrame.new(0, 25, 0))
+                                local spawnCF = mobData.SpawnLocation and (type(mobData.SpawnLocation) == "table" and mobData.SpawnLocation[1] or mobData.SpawnLocation) or quest.QuestCFrame
+                                LurnaHub:SetAction("Đang bay tới bãi chờ quái hồi sinh", "Khu vực: " .. mobData.FullName)
+                                SmoothTweenTo(spawnCF * CFrame.new(0, 20, 0))
                             end
                         end
 
@@ -1308,7 +1401,7 @@ function FarmEngineModule.Init()
                             local mobHRP = targetMob.HumanoidRootPart
                             PosMon = mobHRP.Position
                             BringEnemy()
-                            weaponSc(CPHub.Config.SelectWeapon)
+                            weaponSc(LurnaHub.Config.SelectWeapon)
                             SmoothTweenTo(mobHRP.CFrame * CFrame.new(0, 18, 0))
                         else
                             SmoothTweenTo(CFrame.new(-9479, 142, 5566))
@@ -1319,7 +1412,7 @@ function FarmEngineModule.Init()
                         local cakePrince = Enemies and (Enemies:FindFirstChild("Cake Prince") or Enemies:FindFirstChild("Dough King"))
                         if cakePrince and cakePrince:FindFirstChild("HumanoidRootPart") and cakePrince:FindFirstChild("Humanoid") and cakePrince.Humanoid.Health > 0 then
                             PosMon = cakePrince.HumanoidRootPart.Position
-                            weaponSc(CPHub.Config.SelectWeapon)
+                            weaponSc(LurnaHub.Config.SelectWeapon)
                             SmoothTweenTo(cakePrince.HumanoidRootPart.CFrame * CFrame.new(0, 22, 0))
                         else
                             local targetMob = nil
@@ -1336,7 +1429,7 @@ function FarmEngineModule.Init()
                                 local mobHRP = targetMob.HumanoidRootPart
                                 PosMon = mobHRP.Position
                                 BringEnemy()
-                                weaponSc(CPHub.Config.SelectWeapon)
+                                weaponSc(LurnaHub.Config.SelectWeapon)
                                 SmoothTweenTo(mobHRP.CFrame * CFrame.new(0, 18, 0))
                             else
                                 SmoothTweenTo(CFrame.new(-2020, 38, -12025))
@@ -1381,7 +1474,7 @@ function FarmEngineModule.Init()
                             local mobHRP = nearestMob.HumanoidRootPart
                             PosMon = mobHRP.Position
                             BringEnemy()
-                            weaponSc(CPHub.Config.SelectWeapon)
+                            weaponSc(LurnaHub.Config.SelectWeapon)
                             SmoothTweenTo(mobHRP.CFrame * CFrame.new(0, 18, 0))
                         end
                     end
@@ -1397,10 +1490,10 @@ end
 
 local AutoChestModule = {}
 function AutoChestModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Auto Chest Collector Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Auto Chest Collector Engine...")
     task.spawn(function()
         while task.wait(0.4) do
-            if CPHub.Config.AutoChest then
+            if LurnaHub.Config.AutoChest then
                 pcall(function()
                     local nearestChest = nil
                     local minDistance = math.huge
@@ -1418,7 +1511,7 @@ function AutoChestModule.Init()
                     end
 
                     if nearestChest then
-                        SmoothTweenTo(nearestChest.CFrame, tonumber(CPHub.Config.ChestTweenSpeed) or 350)
+                        SmoothTweenTo(nearestChest.CFrame, tonumber(LurnaHub.Config.ChestTweenSpeed) or 350)
                         if (nearestChest.Position - hrp.Position).Magnitude < 10 then
                             pcall(function()
                                 if firetouchinterest then
@@ -1606,18 +1699,18 @@ local MaterialDatabase = {
 
 local MaterialFarmModule = {}
 function MaterialFarmModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Auto Material Farm Engine Pro (Sea Aware)...")
+    LurnaHub:Debug("INFO", "Khoi chay Auto Material Farm Engine Pro (Sea Aware)...")
     task.spawn(function()
         while task.wait(0.3) do
-            if CPHub.Config.AutoFarmMaterial then
+            if LurnaHub.Config.AutoFarmMaterial then
                 pcall(function()
-                    local selectedMat = CPHub.Config.SelectMaterial or "Bones"
+                    local selectedMat = LurnaHub.Config.SelectMaterial or "Bones"
                     local matData = MaterialDatabase[selectedMat]
                     if not matData then return end
 
                     -- Check if selected material belongs to the CURRENT Sea World!
                     if matData.Sea ~= CurrentSeaWorld then
-                        CPHub:Debug("WARN", string.format("Nguyên liệu '%s' nằm ở Sea %d! Bạn đang ở Sea %d. Vui lòng chuyển Sea!", selectedMat, matData.Sea, CurrentSeaWorld))
+                        LurnaHub:Debug("WARN", string.format("Nguyên liệu '%s' nằm ở Sea %d! Bạn đang ở Sea %d. Vui lòng chuyển Sea!", selectedMat, matData.Sea, CurrentSeaWorld))
                         return
                     end
 
@@ -1642,7 +1735,7 @@ function MaterialFarmModule.Init()
                         local mobHRP = targetMob.HumanoidRootPart
                         PosMon = mobHRP.Position
                         BringEnemy()
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(mobHRP.CFrame * CFrame.new(0, 18, 0))
                     else
                         SmoothTweenTo(matData.SpawnCF)
@@ -1692,12 +1785,12 @@ local MasterBossDatabase = {
 
 local BossFarmModule = {}
 function BossFarmModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Auto Boss Farm Engine Pro (Master 25+ Bosses)...")
+    LurnaHub:Debug("INFO", "Khoi chay Auto Boss Farm Engine Pro (Master 25+ Bosses)...")
     task.spawn(function()
         while task.wait(0.3) do
-            if CPHub.Config.AutoFarmBoss then
+            if LurnaHub.Config.AutoFarmBoss then
                 pcall(function()
-                    local targetBossName = CPHub.Config.SelectBoss or "Cake Queen"
+                    local targetBossName = LurnaHub.Config.SelectBoss or "Cake Queen"
                     local bossInfo = MasterBossDatabase[targetBossName]
                     local Enemies = Workspace:FindFirstChild("Enemies")
                     local targetBoss = nil
@@ -1722,14 +1815,14 @@ function BossFarmModule.Init()
                             end)
                         end
 
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(mobHRP.CFrame * CFrame.new(0, 18, 0))
                     else
                         if bossInfo and bossInfo.SpawnCF then
                             SmoothTweenTo(bossInfo.SpawnCF)
                         end
-                        if CPHub.Config.AutoHopBoss then
-                            CPHub:Debug("WARN", "Boss " .. targetBossName .. " chua xuất hiện, đang Hop Server...")
+                        if LurnaHub.Config.AutoHopBoss then
+                            LurnaHub:Debug("WARN", "Boss " .. targetBossName .. " chua xuất hiện, đang Hop Server...")
                             ExecuteServerHop(true)
                         end
                     end
@@ -1745,21 +1838,21 @@ end
 
 local WorldEventsModule = {}
 function WorldEventsModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master World & Sea Events Solvers Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master World & Sea Events Solvers Engine...")
     
     -- Loop 1: Factory Raid (Sea 2)
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.AutoFactory then
+            if LurnaHub.Config.AutoFactory then
                 pcall(function()
                     local factoryLocation = CFrame.new(448.5, 199.4, -441.4)
                     local Enemies = Workspace:FindFirstChild("Enemies")
                     local coreMob = Enemies and (Enemies:FindFirstChild("Core") or Enemies:FindFirstChild("Factory Staff"))
 
                     if coreMob and coreMob:FindFirstChild("HumanoidRootPart") and coreMob:FindFirstChild("Humanoid") and coreMob.Humanoid.Health > 0 then
-                        CPHub:Debug("SUCCESS", "Phát hiện Factory Core! Đang tấn công...")
+                        LurnaHub:Debug("SUCCESS", "Phát hiện Factory Core! Đang tấn công...")
                         PosMon = coreMob.HumanoidRootPart.Position
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(coreMob.HumanoidRootPart.CFrame * CFrame.new(0, 15, 0))
                     else
                         SmoothTweenTo(factoryLocation)
@@ -1772,7 +1865,7 @@ function WorldEventsModule.Init()
     -- Loop 2: Pirate Raid Castle on the Sea (Sea 3)
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.AutoPirateRaid then
+            if LurnaHub.Config.AutoPirateRaid then
                 pcall(function()
                     local castleLocation = CFrame.new(-5496.2, 313.8, -2841.5)
                     local Enemies = Workspace:FindFirstChild("Enemies")
@@ -1791,7 +1884,7 @@ function WorldEventsModule.Init()
                     if raidTarget then
                         PosMon = raidTarget.HumanoidRootPart.Position
                         BringEnemy()
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(raidTarget.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                     else
                         SmoothTweenTo(castleLocation)
@@ -1804,13 +1897,13 @@ function WorldEventsModule.Init()
     -- Loop 3: Kitsune Azure Embers Spawner Harvester
     task.spawn(function()
         while task.wait(0.3) do
-            if CPHub.Config.AutoKitsuneEmber then
+            if LurnaHub.Config.AutoKitsuneEmber then
                 pcall(function()
                     local kitsuneIsland = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("KitsuneIsland")
                     if kitsuneIsland then
                         for _, child in ipairs(kitsuneIsland:GetDescendants()) do
                             if child.Name == "AzureEmber" or child.Name == "Ember" then
-                                CPHub:Debug("SUCCESS", "Thu thập Kitsune Azure Ember!")
+                                LurnaHub:Debug("SUCCESS", "Thu thập Kitsune Azure Ember!")
                                 SmoothTweenTo(child.CFrame)
                                 if child:IsA("ProximityPrompt") then fireproximityprompt(child) end
                             end
@@ -1969,10 +2062,10 @@ local MasterSubDungeonsDatabase = {
 -- Module Nâng Cấp Trang Bị & Thợ Rèn Blacksmith
 local MasterBlacksmithModule = {}
 function MasterBlacksmithModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Blacksmith Weapon Upgrade Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Blacksmith Weapon Upgrade Engine...")
     task.spawn(function()
         while task.wait(5) do
-            if CPHub.Config.AutoUpgradeWeapons then
+            if LurnaHub.Config.AutoUpgradeWeapons then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -1996,11 +2089,11 @@ end
 
 local RaidEngineModule = {}
 function RaidEngineModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Full Auto Raid & Skill Awakening Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Full Auto Raid & Skill Awakening Engine...")
     MasterBlacksmithModule.Init()
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.AutoRaid then
+            if LurnaHub.Config.AutoRaid then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -2010,8 +2103,8 @@ function RaidEngineModule.Init()
                     local backpack = LocalPlayer:FindFirstChild("Backpack")
                     local hasChip = (char and char:FindFirstChild("Special Microchip")) or (backpack and backpack:FindFirstChild("Special Microchip"))
 
-                    if not hasChip and CPHub.Config.AutoBuyChip then
-                        commF:InvokeServer("BuyRaidsChip", CPHub.Config.SelectRaidChip or "Flame")
+                    if not hasChip and LurnaHub.Config.AutoBuyChip then
+                        commF:InvokeServer("BuyRaidsChip", LurnaHub.Config.SelectRaidChip or "Flame")
                     end
 
                     -- Start Raid Remote
@@ -2032,12 +2125,12 @@ function RaidEngineModule.Init()
                     if raidMob then
                         PosMon = raidMob.HumanoidRootPart.Position
                         BringEnemy()
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(raidMob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                     end
 
                     -- Auto Awaken Unlocked Fruit Skills
-                    if CPHub.Config.AutoAwaken then
+                    if LurnaHub.Config.AutoAwaken then
                         commF:InvokeServer("Awaken")
                     end
                 end)
@@ -2052,10 +2145,10 @@ end
 
 local SeaEventsModule = {}
 function SeaEventsModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Sea Beast & Ocean Monsters Hunter Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Sea Beast & Ocean Monsters Hunter Engine...")
     task.spawn(function()
         while task.wait(0.3) do
-            if CPHub.Config.AutoSeaBeast or CPHub.Config.AutoTerrorShark or CPHub.Config.AutoPiranha then
+            if LurnaHub.Config.AutoSeaBeast or LurnaHub.Config.AutoTerrorShark or LurnaHub.Config.AutoPiranha then
                 pcall(function()
                     local seaTarget = nil
                     local Enemies = Workspace:FindFirstChild("Enemies") or Workspace:FindFirstChild("SeaBeasts")
@@ -2063,17 +2156,17 @@ function SeaEventsModule.Init()
                         for _, mob in ipairs(Enemies:GetChildren()) do
                             if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
                                 local name = mob.Name
-                                if CPHub.Config.AutoSeaBeast and (name:find("SeaBeast") or name:find("Water")) then seaTarget = mob; break
-                                elseif CPHub.Config.AutoTerrorShark and (name:find("Terror") or name:find("Shark")) then seaTarget = mob; break
-                                elseif CPHub.Config.AutoPiranha and name:find("Piranha") then seaTarget = mob; break end
+                                if LurnaHub.Config.AutoSeaBeast and (name:find("SeaBeast") or name:find("Water")) then seaTarget = mob; break
+                                elseif LurnaHub.Config.AutoTerrorShark and (name:find("Terror") or name:find("Shark")) then seaTarget = mob; break
+                                elseif LurnaHub.Config.AutoPiranha and name:find("Piranha") then seaTarget = mob; break end
                             end
                         end
                     end
 
                     if seaTarget then
                         local mobHRP = seaTarget.HumanoidRootPart
-                        weaponSc(CPHub.Config.SelectWeapon)
-                        local safeCF = mobHRP.CFrame * CFrame.new(0, tonumber(CPHub.Config.SeaBeastHeight) or 45, 0)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
+                        local safeCF = mobHRP.CFrame * CFrame.new(0, tonumber(LurnaHub.Config.SeaBeastHeight) or 45, 0)
                         SmoothTweenTo(safeCF)
                     end
                 end)
@@ -2088,7 +2181,7 @@ end
 
 local MasterWeaponQuestsModule = {}
 function MasterWeaponQuestsModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Weapon Quests Solver Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Weapon Quests Solver Engine...")
     task.spawn(function()
         while task.wait(1) do
             pcall(function()
@@ -2096,11 +2189,11 @@ function MasterWeaponQuestsModule.Init()
                 if not commF then return end
 
                 -- 1. Auto Saber Quest Solver (5 Buttons + Torch + Cup + Sick Man + Shanks)
-                if CPHub.Config.AutoObtainSaber then
+                if LurnaHub.Config.AutoObtainSaber then
                     local shanksBoss = GetTargetEnemy("Shanks")
                     if shanksBoss and shanksBoss:FindFirstChild("HumanoidRootPart") then
                         PosMon = shanksBoss.HumanoidRootPart.Position
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(shanksBoss.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                     else
                         -- Press Jungle Secret Buttons 1-5
@@ -2121,7 +2214,7 @@ function MasterWeaponQuestsModule.Init()
                 end
 
                 -- 2. True Triple Katana (TTK) Legendary Sword Dealer Tracker & Buy
-                if CPHub.Config.AutoObtainTTK then
+                if LurnaHub.Config.AutoObtainTTK then
                     local taskInfo = commF:InvokeServer("Manager", "GetTask")
                     if taskInfo and taskInfo:find("think") then
                         commF:InvokeServer("ValuableSwordDealer", "Buy")
@@ -2130,13 +2223,13 @@ function MasterWeaponQuestsModule.Init()
                 end
 
                 -- 3. Pole V2 Unlock Remote
-                if CPHub.Config.AutoObtainPoleV2 then
+                if LurnaHub.Config.AutoObtainPoleV2 then
                     commF:InvokeServer("ThunderGod", "Buy")
                     commF:InvokeServer("SharkAnchor", "CraftMagnet")
                     local anchorShark = GetTargetEnemy("Anchor Terror Shark")
                     if anchorShark and anchorShark:FindFirstChild("HumanoidRootPart") then
                         PosMon = anchorShark.HumanoidRootPart.Position
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(anchorShark.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
                     end
                 end
@@ -2204,19 +2297,19 @@ local MasterFruitDatabase = {
 
 local FruitModule = {}
 function FruitModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Devil Fruit Engine (Gacha, Store, Snipe, Dealer)...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Devil Fruit Engine (Gacha, Store, Snipe, Dealer)...")
     
     -- Loop 1: Auto Roll Fruit Gacha (Dual Remotes)
     task.spawn(function()
         while task.wait(5) do
-            if CPHub.Config.AutoSpinFruit then
+            if LurnaHub.Config.AutoSpinFruit then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if commF then
                         local res1 = commF:InvokeServer("Cousin", "Buy")
                         local res2 = commF:InvokeServer("Gacha", "Buy")
                         if res1 or res2 then
-                            CPHub:Debug("SUCCESS", "🎲 Random Trái Ác Quỷ Thành Công!")
+                            LurnaHub:Debug("SUCCESS", "🎲 Random Trái Ác Quỷ Thành Công!")
                         end
                     end
                 end)
@@ -2227,7 +2320,7 @@ function FruitModule.Init()
     -- Loop 2: Auto Store Fruit to Inventory
     task.spawn(function()
         while task.wait(1.5) do
-            if CPHub.Config.AutoStoreFruit then
+            if LurnaHub.Config.AutoStoreFruit then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -2240,7 +2333,7 @@ function FruitModule.Init()
                     for _, tool in ipairs(tools) do
                         if tool:IsA("Tool") and (tool.Name:find("Fruit") or tool.ToolTip == "Blox Fruit") then
                             local storeRes = commF:InvokeServer("StoreFruit", tool.Name, tool)
-                            CPHub:Debug("SUCCESS", "📦 Đã tự động cất trái vào Kho: " .. tool.Name)
+                            LurnaHub:Debug("SUCCESS", "📦 Đã tự động cất trái vào Kho: " .. tool.Name)
                         end
                     end
                 end)
@@ -2251,11 +2344,11 @@ function FruitModule.Init()
     -- Loop 3: Auto Snipe Ground Fruits & Webhook Notifier
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoSnipeFruit then
+            if LurnaHub.Config.AutoSnipeFruit then
                 pcall(function()
                     for _, v in ipairs(Workspace:GetChildren()) do
                         if v.Name:find("Fruit") and v:FindFirstChild("Handle") then
-                            CPHub:Debug("SUCCESS", "🎯 Phát hiện Trái trên sàn! Đang bay tới nhặt: " .. v.Name)
+                            LurnaHub:Debug("SUCCESS", "🎯 Phát hiện Trái trên sàn! Đang bay tới nhặt: " .. v.Name)
                             SmoothTweenTo(v.Handle.CFrame)
                         end
                     end
@@ -2267,14 +2360,14 @@ function FruitModule.Init()
     -- Loop 4: Auto Drop Stored Fruit to Nearby Allies
     task.spawn(function()
         while task.wait(3) do
-            if CPHub.Config.AutoDropFruit then
+            if LurnaHub.Config.AutoDropFruit then
                 pcall(function()
                     local char = LocalPlayer.Character
                     if char then
                         for _, tool in ipairs(char:GetChildren()) do
                             if tool:IsA("Tool") and (tool.Name:find("Fruit") or tool.ToolTip == "Blox Fruit") then
                                 tool.Parent = Workspace
-                                CPHub:Debug("INFO", "Đã thả Trái Ác Quỷ ra sàn: " .. tool.Name)
+                                LurnaHub:Debug("INFO", "Đã thả Trái Ác Quỷ ra sàn: " .. tool.Name)
                             end
                         end
                     end
@@ -2286,13 +2379,13 @@ function FruitModule.Init()
     -- Loop 5: Stock Inspector for Blox Fruit Dealer
     task.spawn(function()
         while task.wait(30) do
-            if CPHub.Config.AutoCheckFruitStock then
+            if LurnaHub.Config.AutoCheckFruitStock then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if commF then
                         local stock = commF:InvokeServer("GetFruits")
                         if type(stock) == "table" then
-                            CPHub:Debug("INFO", "Cập nhật kho Trái Ác Quỷ thành công! Tổng cộng: " .. tostring(#stock) .. " loại trái đang có hàng.")
+                            LurnaHub:Debug("INFO", "Cập nhật kho Trái Ác Quỷ thành công! Tổng cộng: " .. tostring(#stock) .. " loại trái đang có hàng.")
                         end
                     end
                 end)
@@ -2307,10 +2400,10 @@ end
 
 local FishingModule = {}
 function FishingModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Auto Fishing Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Auto Fishing Engine...")
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.AutoFishing then
+            if LurnaHub.Config.AutoFishing then
                 pcall(function()
                     local char = LocalPlayer.Character
                     if not char then return end
@@ -2330,7 +2423,7 @@ end
 
 local AutoStatsModule = {}
 function AutoStatsModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Multi-Stat Auto Allocator Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Multi-Stat Auto Allocator Engine...")
     task.spawn(function()
         while task.wait(0.5) do
             pcall(function()
@@ -2339,15 +2432,15 @@ function AutoStatsModule.Init()
                 if not pointsObj or pointsObj.Value <= 0 then return end
 
                 local enabledStats = {}
-                if CPHub.Config.AutoStatMelee then table.insert(enabledStats, "Melee") end
-                if CPHub.Config.AutoStatDefense then table.insert(enabledStats, "Defense") end
-                if CPHub.Config.AutoStatSword then table.insert(enabledStats, "Sword") end
-                if CPHub.Config.AutoStatGun then table.insert(enabledStats, "Gun") end
-                if CPHub.Config.AutoStatFruit then table.insert(enabledStats, "Demon Fruit") end
+                if LurnaHub.Config.AutoStatMelee then table.insert(enabledStats, "Melee") end
+                if LurnaHub.Config.AutoStatDefense then table.insert(enabledStats, "Defense") end
+                if LurnaHub.Config.AutoStatSword then table.insert(enabledStats, "Sword") end
+                if LurnaHub.Config.AutoStatGun then table.insert(enabledStats, "Gun") end
+                if LurnaHub.Config.AutoStatFruit then table.insert(enabledStats, "Demon Fruit") end
 
                 if #enabledStats > 0 then
                     local totalPoints = pointsObj.Value
-                    local step = tonumber(CPHub.Config.StatsPointStep) or 3
+                    local step = tonumber(LurnaHub.Config.StatsPointStep) or 3
                     if step > totalPoints then step = totalPoints end
                     
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
@@ -2370,9 +2463,9 @@ end
 local MasterESPVisualsModule = {}
 local ESPModule = MasterESPVisualsModule
 function MasterESPVisualsModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master ESP Visuals & Wallhack Engine Pro...")
+    LurnaHub:Debug("INFO", "Khoi chay Master ESP Visuals & Wallhack Engine Pro...")
     local espFolder = Instance.new("Folder")
-    espFolder.Name = "CPHub_ESPFolder"
+    espFolder.Name = "LurnaHub_ESPFolder"
     espFolder.Parent = GetSafeGui()
 
     local function CreateBillboard(target, text, color)
@@ -2421,7 +2514,7 @@ function MasterESPVisualsModule.Init()
                 if not hrp then return end
 
                 -- 1. Player ESP (Box, Health, Distance, Bounty, Danger Level, Tracers)
-                if CPHub.Config.ESPPlayer then
+                if LurnaHub.Config.ESPPlayer then
                     for _, p in ipairs(Players:GetPlayers()) do
                         if p ~= LocalPlayer and p.Character then
                             local pHRP = p.Character:FindFirstChild("HumanoidRootPart")
@@ -2448,7 +2541,7 @@ function MasterESPVisualsModule.Init()
                 end
 
                 -- 2. Boss ESP
-                if CPHub.Config.ESPBoss then
+                if LurnaHub.Config.ESPBoss then
                     local enemies = Workspace:FindFirstChild("Enemies")
                     if enemies then
                         for _, mob in ipairs(enemies:GetChildren()) do
@@ -2466,7 +2559,7 @@ function MasterESPVisualsModule.Init()
                 end
 
                 -- 3. Chest ESP (Beli & Frags)
-                if CPHub.Config.ESPChest then
+                if LurnaHub.Config.ESPChest then
                     for _, v in ipairs(Workspace:GetDescendants()) do
                         if (v.Name == "Chest1" or v.Name == "Chest2" or v.Name == "Chest3") and v:IsA("BasePart") then
                             local dist = math.floor((v.Position - hrp.Position).Magnitude)
@@ -2477,7 +2570,7 @@ function MasterESPVisualsModule.Init()
                 end
 
                 -- 4. Devil Fruit ESP (Ground Spawned)
-                if CPHub.Config.ESPFruit then
+                if LurnaHub.Config.ESPFruit then
                     for _, v in ipairs(Workspace:GetChildren()) do
                         if v.Name:find("Fruit") and v:FindFirstChild("Handle") then
                             local dist = math.floor((v.Handle.Position - hrp.Position).Magnitude)
@@ -2487,7 +2580,7 @@ function MasterESPVisualsModule.Init()
                 end
 
                 -- 5. Flower ESP (Race V2)
-                if CPHub.Config.ESPFlower then
+                if LurnaHub.Config.ESPFlower then
                     for _, v in ipairs(Workspace:GetChildren()) do
                         if v.Name == "Flower1" or v.Name == "Flower2" or v.Name == "Flower3" then
                             local part = v:IsA("BasePart") and v or v:FindFirstChildWhichIsA("BasePart", true)
@@ -2500,7 +2593,7 @@ function MasterESPVisualsModule.Init()
                 end
 
                 -- 6. Mirage Island & Mystic Gear ESP
-                if CPHub.Config.ESPMirage then
+                if LurnaHub.Config.ESPMirage then
                     local mirage = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("Mirage Island")
                     if mirage then
                         CreateBillboard(mirage, "🏝️ [MIRAGE ISLAND (ĐẢO ẢO ẢNH)]", Color3.fromRGB(0, 200, 255))
@@ -2513,7 +2606,7 @@ function MasterESPVisualsModule.Init()
                 end
 
                 -- 7. Sea Beast & Ocean Monsters ESP
-                if CPHub.Config.ESPSeaBeast then
+                if LurnaHub.Config.ESPSeaBeast then
                     local enemies = Workspace:FindFirstChild("Enemies") or Workspace:FindFirstChild("SeaBeasts")
                     if enemies then
                         for _, mob in ipairs(enemies:GetChildren()) do
@@ -2536,10 +2629,10 @@ end
 
 local QuestCDKModule = {}
 function QuestCDKModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Quest CDK Full Solver Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Quest CDK Full Solver Engine...")
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoObtainCDK then
+            if LurnaHub.Config.AutoObtainCDK then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -2557,18 +2650,18 @@ function QuestCDKModule.Init()
                         local evilVal = tonumber(evilProgress["Evil"])
                         if evilVal == -3 then
                             -- Evil Trial 1: Defeat Forest Pirates
-                            CPHub:Debug("INFO", "[CDK Yama 1] Defeating Forest Pirates...")
+                            LurnaHub:Debug("INFO", "[CDK Yama 1] Defeating Forest Pirates...")
                             local mob = GetTargetEnemy("Forest Pirate")
                             if mob and mob:FindFirstChild("HumanoidRootPart") then
                                 PosMon = mob.HumanoidRootPart.Position
-                                weaponSc(CPHub.Config.SelectWeapon)
+                                weaponSc(LurnaHub.Config.SelectWeapon)
                                 SmoothTweenTo(mob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                             else
                                 SmoothTweenTo(CFrame.new(-13223.5, 428.2, -7766.1))
                             end
                         elseif evilVal == -4 then
                             -- Evil Trial 2: Haze Monsters
-                            CPHub:Debug("INFO", "[CDK Yama 2] Hunting Haze Mobs...")
+                            LurnaHub:Debug("INFO", "[CDK Yama 2] Hunting Haze Mobs...")
                             local questHaze = LocalPlayer:FindFirstChild("QuestHaze")
                             if questHaze then
                                 for _, child in ipairs(questHaze:GetChildren()) do
@@ -2576,7 +2669,7 @@ function QuestCDKModule.Init()
                                         local mob = GetTargetEnemy(child.Name)
                                         if mob and mob:FindFirstChild("HumanoidRootPart") then
                                             PosMon = mob.HumanoidRootPart.Position
-                                            weaponSc(CPHub.Config.SelectWeapon)
+                                            weaponSc(LurnaHub.Config.SelectWeapon)
                                             SmoothTweenTo(mob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                                             break
                                         end
@@ -2585,7 +2678,7 @@ function QuestCDKModule.Init()
                             end
                         elseif evilVal == -5 then
                             -- Evil Trial 3: Hell Dimension Torches
-                            CPHub:Debug("INFO", "[CDK Yama 3] Hell Dimension Torches Solver...")
+                            LurnaHub:Debug("INFO", "[CDK Yama 3] Hell Dimension Torches Solver...")
                             local hell = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("HellDimension")
                             if hell then
                                 local spawnPt = hell:FindFirstChild("Spawn")
@@ -2616,9 +2709,9 @@ function QuestCDKModule.Init()
                     -- Boss Fight: Cursed Skeleton Boss
                     local skeletonBoss = GetTargetEnemy("Cursed Skeleton Boss")
                     if skeletonBoss and skeletonBoss:FindFirstChild("HumanoidRootPart") then
-                        CPHub:Debug("SUCCESS", "Fighting Cursed Skeleton Boss for CDK!")
+                        LurnaHub:Debug("SUCCESS", "Fighting Cursed Skeleton Boss for CDK!")
                         PosMon = skeletonBoss.HumanoidRootPart.Position
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(skeletonBoss.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                     end
                 end)
@@ -2633,10 +2726,10 @@ end
 
 local QuestSoulGuitarModule = {}
 function QuestSoulGuitarModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Quest Soul Guitar Full Solver Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Quest Soul Guitar Full Solver Engine...")
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoObtainSoulGuitar then
+            if LurnaHub.Config.AutoObtainSoulGuitar then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -2646,7 +2739,7 @@ function QuestSoulGuitarModule.Init()
                     if isFullMoon then
                         SmoothTweenTo(CFrame.new(-9260, 140, 5540))
                         commF:InvokeServer("gravestone", "Pray")
-                        CPHub:Debug("SUCCESS", "Da Praying Gravestone Đêm Trăng Tròn!")
+                        LurnaHub:Debug("SUCCESS", "Da Praying Gravestone Đêm Trăng Tròn!")
                     end
 
                     -- Step 2: Living Zombies Kill
@@ -2659,7 +2752,7 @@ function QuestSoulGuitarModule.Init()
                             end
                         end
                         if #livingZombies >= 5 then
-                            CPHub:Debug("INFO", "Gom 6 Living Zombies làm Quest Red Floor...")
+                            LurnaHub:Debug("INFO", "Gom 6 Living Zombies làm Quest Red Floor...")
                             local centerPos = Vector3.new(-10120, 140, 5950)
                             for _, mob in ipairs(livingZombies) do
                                 mob.HumanoidRootPart.CFrame = CFrame.new(centerPos)
@@ -2682,12 +2775,12 @@ end
 
 local MasterRaceV1V4Module = {}
 function MasterRaceV1V4Module.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Race V1-V4 & Temple of Time Solver Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Race V1-V4 & Temple of Time Solver Engine...")
     
     -- Loop 1: Race V2 (Flower Quest 1 Red, 2 Blue, 3 Yellow + Alchemist NPC)
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoFlowerV2 then
+            if LurnaHub.Config.AutoFlowerV2 then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -2699,7 +2792,7 @@ function MasterRaceV1V4Module.Init()
                     local hasYellow = bp and bp:FindFirstChild("Flower 3")
 
                     if hasRed and hasBlue and hasYellow then
-                        CPHub:Debug("SUCCESS", "Thu thập đủ 3 Bông Hoa (Đỏ, Xanh, Vàng)! Tìm Alchemist NPC...")
+                        LurnaHub:Debug("SUCCESS", "Thu thập đủ 3 Bông Hoa (Đỏ, Xanh, Vàng)! Tìm Alchemist NPC...")
                         SmoothTweenTo(CFrame.new(-2910, 73, -3830))
                         commF:InvokeServer("Alchemist", "Buy")
                     else
@@ -2714,7 +2807,7 @@ function MasterRaceV1V4Module.Init()
                             local mob = GetTargetEnemy("Swan Pirate")
                             if mob and mob:FindFirstChild("HumanoidRootPart") then
                                 PosMon = mob.HumanoidRootPart.Position
-                                weaponSc(CPHub.Config.SelectWeapon)
+                                weaponSc(LurnaHub.Config.SelectWeapon)
                                 SmoothTweenTo(mob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                             end
                         end
@@ -2727,7 +2820,7 @@ function MasterRaceV1V4Module.Init()
     -- Loop 2: Race V3 Quest Solver (Ariphes / Dawdee NPC)
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoRaceV3 then
+            if LurnaHub.Config.AutoRaceV3 then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if commF then
@@ -2742,13 +2835,13 @@ function MasterRaceV1V4Module.Init()
     -- Loop 3: Race V4 Mirage Island & Moon Alignment & Gear Picker
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoFindMirage or CPHub.Config.AutoPullLever then
+            if LurnaHub.Config.AutoFindMirage or LurnaHub.Config.AutoPullLever then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     local mirage = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("Mirage Island")
 
                     if mirage then
-                        CPHub:Debug("SUCCESS", "Phát hiện Đảo Ảo Ảnh (Mirage Island)! Di chuyển lên đỉnh núi...")
+                        LurnaHub:Debug("SUCCESS", "Phát hiện Đảo Ảo Ảnh (Mirage Island)! Di chuyển lên đỉnh núi...")
                         local highestPart = mirage:FindFirstChild("HighestPoint") or mirage.PrimaryPart
                         if highestPart then
                             SmoothTweenTo(highestPart.CFrame * CFrame.new(0, 50, 0))
@@ -2757,7 +2850,7 @@ function MasterRaceV1V4Module.Init()
                         -- Camera Look at Full Moon for 15s Alignment
                         local fullMoon = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("FullMoon")
                         if fullMoon then
-                            CPHub:Debug("SUCCESS", "Căn góc Camera nhìn Đêm Trăng Tròn để kích hoạt Bánh Răng...")
+                            LurnaHub:Debug("SUCCESS", "Căn góc Camera nhìn Đêm Trăng Tròn để kích hoạt Bánh Răng...")
                             local cam = Workspace.CurrentCamera
                             if cam then
                                 cam.CFrame = CFrame.new(cam.CFrame.Position, fullMoon.Position)
@@ -2772,7 +2865,7 @@ function MasterRaceV1V4Module.Init()
                         -- Mystic Gear Search
                         for _, child in ipairs(mirage:GetDescendants()) do
                             if child.Name == "Gear" or child.Name == "MysticGear" then
-                                CPHub:Debug("SUCCESS", "Tìm thấy Bánh Răng Bí Mật (Mystic Gear)! Picking up...")
+                                LurnaHub:Debug("SUCCESS", "Tìm thấy Bánh Răng Bí Mật (Mystic Gear)! Picking up...")
                                 SmoothTweenTo(child.CFrame)
                                 if child:IsA("ProximityPrompt") then fireproximityprompt(child) end
                                 break
@@ -2787,7 +2880,7 @@ function MasterRaceV1V4Module.Init()
     -- Loop 4: Race V4 Temple of Time Trials Solver
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoCompleteTrial then
+            if LurnaHub.Config.AutoCompleteTrial then
                 pcall(function()
                     local templeCF = CFrame.new(28282.5, 14896.8, 105.1)
                     SmoothTweenTo(templeCF)
@@ -2957,10 +3050,10 @@ local MasterAccessoriesDatabase = {
 
 local MasterGunsAndAccessoriesModule = {}
 function MasterGunsAndAccessoriesModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Guns & Accessories Crafting Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Guns & Accessories Crafting Engine...")
     task.spawn(function()
         while task.wait(3) do
-            if CPHub.Config.AutoCraftAccessories then
+            if LurnaHub.Config.AutoCraftAccessories then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -3023,10 +3116,10 @@ local MasterTitlesDatabase = {
 
 local MasterTitlesModule = {}
 function MasterTitlesModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Titles & Achievements Unlock Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Titles & Achievements Unlock Engine...")
     task.spawn(function()
         while task.wait(10) do
-            if CPHub.Config.AutoClaimTitles then
+            if LurnaHub.Config.AutoClaimTitles then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -3035,7 +3128,7 @@ function MasterTitlesModule.Init()
                         for titleId, titleData in pairs(unlockedTitles) do
                             if titleData and not titleData.Equipped then
                                 commF:InvokeServer("equipTitle", titleId)
-                                CPHub:Debug("SUCCESS", "Đã tự động kích hoạt Danh Hiệu mới: " .. tostring(titleId))
+                                LurnaHub:Debug("SUCCESS", "Đã tự động kích hoạt Danh Hiệu mới: " .. tostring(titleId))
                                 break
                             end
                         end
@@ -3072,7 +3165,7 @@ MasterTitlesModule.Init()
 
 local MasterEquipmentModule = {}
 function MasterEquipmentModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Equipment & Legendary Swords Solver Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Equipment & Legendary Swords Solver Engine...")
     task.spawn(function()
         while task.wait(1) do
             pcall(function()
@@ -3080,11 +3173,11 @@ function MasterEquipmentModule.Init()
                 if not commF then return end
 
                 -- 1. Tushita Quest (Hydra Island Waterfall + 5 Torches + Longma Boss)
-                if CPHub.Config.AutoObtainTushita then
+                if LurnaHub.Config.AutoObtainTushita then
                     local longma = GetTargetEnemy("Longma")
                     if longma and longma:FindFirstChild("HumanoidRootPart") then
                         PosMon = longma.HumanoidRootPart.Position
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(longma.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                     else
                         -- Teleport to Hydra Secret Door
@@ -3093,10 +3186,10 @@ function MasterEquipmentModule.Init()
                 end
 
                 -- 2. Yama Quest (30 Elite Hunter Mobs Solver)
-                if CPHub.Config.AutoObtainYama then
+                if LurnaHub.Config.AutoObtainYama then
                     local eliteProgress = commF:InvokeServer("EliteHunter", "Progress")
                     if tonumber(eliteProgress) and tonumber(eliteProgress) >= 30 then
-                        CPHub:Debug("SUCCESS", "Đã hoàn thành 30 Elite Hunter! Rút Kiếm Yama tại Thác Nước...")
+                        LurnaHub:Debug("SUCCESS", "Đã hoàn thành 30 Elite Hunter! Rút Kiếm Yama tại Thác Nước...")
                         SmoothTweenTo(CFrame.new(5250, 15, 750))
                     else
                         commF:InvokeServer("EliteHunter")
@@ -3104,11 +3197,11 @@ function MasterEquipmentModule.Init()
                 end
 
                 -- 3. Hallow Scythe (Soul Reaper Boss Drop)
-                if CPHub.Config.AutoObtainHallowScythe then
+                if LurnaHub.Config.AutoObtainHallowScythe then
                     local soulReaper = GetTargetEnemy("Soul Reaper")
                     if soulReaper and soulReaper:FindFirstChild("HumanoidRootPart") then
                         PosMon = soulReaper.HumanoidRootPart.Position
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(soulReaper.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                     else
                         commF:InvokeServer("Bones", "Buy", 1, 1)
@@ -3125,14 +3218,14 @@ end
 
 local MasterFightingStylesModule = {}
 function MasterFightingStylesModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Fighting Styles Auto Unlock Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Fighting Styles Auto Unlock Engine...")
     task.spawn(function()
         while task.wait(2) do
             pcall(function()
                 local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                 if not commF then return end
 
-                local selectedStyle = CPHub.Config.SelectFightingStyle or "Godhuman"
+                local selectedStyle = LurnaHub.Config.SelectFightingStyle or "Godhuman"
                 if selectedStyle == "Godhuman" then commF:InvokeServer("BuyGodhuman")
                 elseif selectedStyle == "Sanguine Art" then commF:InvokeServer("BuySanguineArt")
                 elseif selectedStyle == "Dragon Talon" then commF:InvokeServer("BuyDragonTalon")
@@ -3189,7 +3282,7 @@ function MasterPvPBountyModule.IsPlayerEligibleForBounty(targetPlayer)
 end
 
 function MasterPvPBountyModule.GetNearbyEligiblePlayer(radius)
-    radius = radius or tonumber(CPHub.Config.BountyDetectRadius) or 250
+    radius = radius or tonumber(LurnaHub.Config.BountyDetectRadius) or 250
     local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not myHRP then return nil end
 
@@ -3246,10 +3339,10 @@ function MasterPvPBountyModule.ExecuteSkillCombo(targetChar)
 end
 
 function MasterPvPBountyModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master PvP & Auto Bounty Hunting Combo Engine (M1 Bypass)...")
+    LurnaHub:Debug("INFO", "Khoi chay Master PvP & Auto Bounty Hunting Combo Engine (M1 Bypass)...")
     task.spawn(function()
         while task.wait(0.2) do
-            if CPHub.Config.AutoBounty then
+            if LurnaHub.Config.AutoBounty then
                 pcall(function()
                     local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                     local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
@@ -3257,7 +3350,7 @@ function MasterPvPBountyModule.Init()
 
                     -- Tự động bay lên trời né đòn khi máu dưới 25%
                     if hum.Health < hum.MaxHealth * 0.25 then
-                        CPHub:SetAction("⚠️ Máu dưới 25%! Đang bay lên không trung hồi phục HP...", "Tự động né đòn")
+                        LurnaHub:SetAction("⚠️ Máu dưới 25%! Đang bay lên không trung hồi phục HP...", "Tự động né đòn")
                         SmoothTweenTo(hrp.CFrame * CFrame.new(0, 250, 0))
                         return
                     end
@@ -3270,7 +3363,7 @@ function MasterPvPBountyModule.Init()
                         if pHRP and pHum and pHum.Health > 0 then
                             local tData = targetPlayer:FindFirstChild("Data")
                             local tLevel = tData and tData:FindFirstChild("Level") and tData.Level.Value or "N/A"
-                            CPHub:SetAction("⚔️ [Auto Bounty] Đang săn người chơi: " .. targetPlayer.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V")
+                            LurnaHub:SetAction("⚔️ [Auto Bounty] Đang săn người chơi: " .. targetPlayer.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V")
                             SmoothTweenTo(pHRP.CFrame * CFrame.new(0, 4, -3))
                             MasterPvPBountyModule.ExecuteSkillCombo(targetPlayer.Character)
                         end
@@ -3303,8 +3396,8 @@ function MasterKaitunModule.SolveSaberQuest()
     local hasSaber = (bp and bp:FindFirstChild("Saber")) or (char and char:FindFirstChild("Saber"))
     if hasSaber then return true end
 
-    CPHub.Config.KaitunStatus = "[Kaitun Saber] Đang thực hiện chuỗi nhiệm vụ giải đố Saber..."
-    CPHub:Debug("INFO", "Kaitun: Bắt đầu giải đố Saber Quest...")
+    LurnaHub.Config.KaitunStatus = "[Kaitun Saber] Đang thực hiện chuỗi nhiệm vụ giải đố Saber..."
+    LurnaHub:Debug("INFO", "Kaitun: Bắt đầu giải đố Saber Quest...")
 
     -- Bước 1: Kích hoạt 5 nút bấm xanh trên Đảo Khỉ Jungle
     local jungleButtons = {
@@ -3348,7 +3441,7 @@ function MasterKaitunModule.SolveSaberQuest()
     local mobLeader = GetTargetEnemy("Mob Leader")
     if mobLeader and mobLeader:FindFirstChild("HumanoidRootPart") then
         PosMon = mobLeader.HumanoidRootPart.Position
-        weaponSc(CPHub.Config.SelectWeapon)
+        weaponSc(LurnaHub.Config.SelectWeapon)
         SmoothTweenTo(mobLeader.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
         return false
     else
@@ -3363,7 +3456,7 @@ function MasterKaitunModule.SolveSaberQuest()
     local shanks = GetTargetEnemy("Saber Expert") or GetTargetEnemy("Shanks")
     if shanks and shanks:FindFirstChild("HumanoidRootPart") then
         PosMon = shanks.HumanoidRootPart.Position
-        weaponSc(CPHub.Config.SelectWeapon)
+        weaponSc(LurnaHub.Config.SelectWeapon)
         SmoothTweenTo(shanks.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
         return false
     else
@@ -3378,8 +3471,8 @@ function MasterKaitunModule.SolveSea1To2Transition()
     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
     if not commF then return end
 
-    CPHub.Config.KaitunStatus = "[Kaitun Sea 1 -> 2] Đang làm chuỗi nhiệm vụ chuyển sang Sea 2..."
-    CPHub:SetAction("Làm nhiệm vụ chuyển Sea 2 (Military Detective)", "Nhà Tù Prison & Ice Admiral")
+    LurnaHub.Config.KaitunStatus = "[Kaitun Sea 1 -> 2] Đang làm chuỗi nhiệm vụ chuyển sang Sea 2..."
+    LurnaHub:SetAction("Làm nhiệm vụ chuyển Sea 2 (Military Detective)", "Nhà Tù Prison & Ice Admiral")
 
     -- Bước 1: Gặp Thám Tử Quân Đội (Military Detective) tại Nhà Tù Prison lấy Chìa Khóa
     SmoothTweenTo(CFrame.new(4854, 6, 745))
@@ -3389,9 +3482,9 @@ function MasterKaitunModule.SolveSea1To2Transition()
     -- Bước 2: Mở cửa Động Băng tại Snow Mountain và tiêu diệt Ice Admiral Boss
     local iceAdmiral = GetTargetEnemy("Ice Admiral")
     if iceAdmiral and iceAdmiral:FindFirstChild("HumanoidRootPart") then
-        CPHub:SetAction("Đang tiêu diệt Ice Admiral Boss (Chuyển Sea 2)", "Boss: Ice Admiral")
+        LurnaHub:SetAction("Đang tiêu diệt Ice Admiral Boss (Chuyển Sea 2)", "Boss: Ice Admiral")
         PosMon = iceAdmiral.HumanoidRootPart.Position
-        weaponSc(CPHub.Config.SelectWeapon)
+        weaponSc(LurnaHub.Config.SelectWeapon)
         SmoothTweenTo(iceAdmiral.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
         return
     else
@@ -3399,7 +3492,7 @@ function MasterKaitunModule.SolveSea1To2Transition()
     end
 
     -- Bước 3: Nói chuyện với Captain Experienced tại Middle Town để du hành sang Sea 2
-    CPHub:SetAction("Nói chuyện Captain Experienced du hành sang Sea 2", "Middle Town")
+    LurnaHub:SetAction("Nói chuyện Captain Experienced du hành sang Sea 2", "Middle Town")
     SmoothTweenTo(CFrame.new(-29, 6, 5320))
     task.wait(0.5)
     commF:InvokeServer("TravelDressrosa")
@@ -3410,10 +3503,10 @@ function MasterKaitunModule.SolveBartiloQuest()
     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
     if not commF then return false end
 
-    CPHub.Config.KaitunStatus = "[Kaitun Bartilo] Đang thực hiện chuỗi Bartilo Quest..."
+    LurnaHub.Config.KaitunStatus = "[Kaitun Bartilo] Đang thực hiện chuỗi Bartilo Quest..."
     
     -- Bước 1: Nhận nhiệm vụ Bartilo tại Cafe
-    CPHub:SetAction("Nhận nhiệm vụ Bartilo tại Cafe", "NPC: Bartilo")
+    LurnaHub:SetAction("Nhận nhiệm vụ Bartilo tại Cafe", "NPC: Bartilo")
     SmoothTweenTo(CFrame.new(-456, 73, 301))
     task.wait(0.5)
     commF:InvokeServer("BartiloQuest", "Start")
@@ -3421,9 +3514,9 @@ function MasterKaitunModule.SolveBartiloQuest()
     -- Bước 2: Tiêu diệt 50 Swan Pirate
     local swanMob = GetTargetEnemy("Swan Pirate")
     if swanMob and swanMob:FindFirstChild("HumanoidRootPart") then
-        CPHub:SetAction("Đang tiêu diệt Swan Pirate (Bartilo Quest)", "Quái: Swan Pirate")
+        LurnaHub:SetAction("Đang tiêu diệt Swan Pirate (Bartilo Quest)", "Quái: Swan Pirate")
         PosMon = swanMob.HumanoidRootPart.Position
-        weaponSc(CPHub.Config.SelectWeapon)
+        weaponSc(LurnaHub.Config.SelectWeapon)
         SmoothTweenTo(swanMob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
         return false
     end
@@ -3431,9 +3524,9 @@ function MasterKaitunModule.SolveBartiloQuest()
     -- Bước 3: Tiêu diệt Jeremy Boss
     local jeremy = GetTargetEnemy("Jeremy")
     if jeremy and jeremy:FindFirstChild("HumanoidRootPart") then
-        CPHub:SetAction("Đang tiêu diệt Jeremy Boss (Bartilo Quest)", "Boss: Jeremy")
+        LurnaHub:SetAction("Đang tiêu diệt Jeremy Boss (Bartilo Quest)", "Boss: Jeremy")
         PosMon = jeremy.HumanoidRootPart.Position
-        weaponSc(CPHub.Config.SelectWeapon)
+        weaponSc(LurnaHub.Config.SelectWeapon)
         SmoothTweenTo(jeremy.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
         return false
     else
@@ -3441,7 +3534,7 @@ function MasterKaitunModule.SolveBartiloQuest()
     end
 
     -- Bước 4: Giải cứu đấu sĩ tại Colosseum với mật mã Dinh Thự
-    CPHub:SetAction("Giải mã phiến đá Colosseum (Bartilo Quest)", "Đấu Trường Colosseum")
+    LurnaHub:SetAction("Giải mã phiến đá Colosseum (Bartilo Quest)", "Đấu Trường Colosseum")
     local colosseumPlates = {
         CFrame.new(-1820, 50, -2740),
         CFrame.new(-1800, 50, -2720),
@@ -3460,8 +3553,8 @@ function MasterKaitunModule.SolveSea2To3Transition()
     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
     if not commF then return end
 
-    CPHub.Config.KaitunStatus = "[Kaitun Sea 2 -> 3] Đang làm chuỗi nhiệm vụ chuyển sang Sea 3..."
-    CPHub:SetAction("Làm nhiệm vụ chuyển Sea 3 (Don Swan & King Red Head)", "Dinh Thự & Đấu Trường")
+    LurnaHub.Config.KaitunStatus = "[Kaitun Sea 2 -> 3] Đang làm chuỗi nhiệm vụ chuyển sang Sea 3..."
+    LurnaHub:SetAction("Làm nhiệm vụ chuyển Sea 3 (Don Swan & King Red Head)", "Dinh Thự & Đấu Trường")
 
     -- Bước 1: Gặp Trevor tại Dinh Thự Mansion (Đưa trái 1M+ nếu cần)
     SmoothTweenTo(CFrame.new(-288, 331, 592))
@@ -3470,9 +3563,9 @@ function MasterKaitunModule.SolveSea2To3Transition()
     -- Bước 2: Vào Phòng Don Swan và tiêu diệt Don Swan Boss
     local donSwan = GetTargetEnemy("Don Swan")
     if donSwan and donSwan:FindFirstChild("HumanoidRootPart") then
-        CPHub:SetAction("Đang tiêu diệt Don Swan Boss (Chuyển Sea 3)", "Boss: Don Swan")
+        LurnaHub:SetAction("Đang tiêu diệt Don Swan Boss (Chuyển Sea 3)", "Boss: Don Swan")
         PosMon = donSwan.HumanoidRootPart.Position
-        weaponSc(CPHub.Config.SelectWeapon)
+        weaponSc(LurnaHub.Config.SelectWeapon)
         SmoothTweenTo(donSwan.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
         return
     else
@@ -3487,15 +3580,15 @@ function MasterKaitunModule.SolveSea2To3Transition()
     -- Bước 4: Tiêu diệt Rip Indra Boss tại Đấu Trường
     local ripIndra = GetTargetEnemy("Rip Indra")
     if ripIndra and ripIndra:FindFirstChild("HumanoidRootPart") then
-        CPHub:SetAction("Đang tiêu diệt Rip Indra Boss (Chuyển Sea 3)", "Boss: Rip Indra")
+        LurnaHub:SetAction("Đang tiêu diệt Rip Indra Boss (Chuyển Sea 3)", "Boss: Rip Indra")
         PosMon = ripIndra.HumanoidRootPart.Position
-        weaponSc(CPHub.Config.SelectWeapon)
+        weaponSc(LurnaHub.Config.SelectWeapon)
         SmoothTweenTo(ripIndra.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
         return
     end
 
     -- Bước 5: Nói chuyện với Mr. Captain tại Green Zone để du hành sang Sea 3
-    CPHub:SetAction("Nói chuyện Mr. Captain du hành sang Sea 3", "Green Zone")
+    LurnaHub:SetAction("Nói chuyện Mr. Captain du hành sang Sea 3", "Green Zone")
     SmoothTweenTo(CFrame.new(-2440, 73, -3216))
     task.wait(0.5)
     commF:InvokeServer("TravelZou")
@@ -3503,7 +3596,7 @@ end
 
 -- Hàm Tự Động Phân Bổ Điểm Stats Thông Minh (Smart Stat Allocator)
 function MasterKaitunModule.AllocateStats()
-    if not CPHub.Config.KaitunAutoStats then return end
+    if not LurnaHub.Config.KaitunAutoStats then return end
     
     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
     if not commF then return end
@@ -3521,7 +3614,7 @@ function MasterKaitunModule.AllocateStats()
     local fruit = stats and stats:FindFirstChild("Demon Fruit") and stats["Demon Fruit"].Level.Value or 1
 
     local maxStat = 2550
-    local preset = CPHub.Config.KaitunStatPreset or "Balanced (Melee + Defense + Sword)"
+    local preset = LurnaHub.Config.KaitunStatPreset or "Balanced (Melee + Defense + Sword)"
 
     if preset == "Balanced (Melee + Defense + Sword)" then
         if melee < maxStat and (melee <= defense) then
@@ -3560,7 +3653,7 @@ end
 
 -- Hàm Tự Động Mua Võ Khi Đủ Điều Kiện (Auto Buy Fighting Styles)
 function MasterKaitunModule.AutoBuyFightingStyles()
-    if not CPHub.Config.KaitunAutoBuyFightingStyles then return end
+    if not LurnaHub.Config.KaitunAutoBuyFightingStyles then return end
     
     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
     if not commF then return end
@@ -3588,10 +3681,10 @@ end
 
 -- VÒNG LẶP CHÍNH CỦA AUTO KAITUN ENGINE
 function MasterKaitunModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Auto Kaitun Pro Engine (1-2550 Full Progression)...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Auto Kaitun Pro Engine (1-2550 Full Progression)...")
     task.spawn(function()
         while task.wait(0.4) do
-            if CPHub.Config.AutoKaitun then
+            if LurnaHub.Config.AutoKaitun then
                 pcall(function()
                     local level = LocalPlayer.Data and LocalPlayer.Data.Level and LocalPlayer.Data.Level.Value or 1
                     local placeId = game.PlaceId
@@ -3600,7 +3693,7 @@ function MasterKaitunModule.Init()
                     local currentSea = 1
                     if placeId == 4442272183 then currentSea = 2
                     elseif placeId == 7449423635 then currentSea = 3 end
-                    CPHub.Config.KaitunCurrentSea = currentSea
+                    LurnaHub.Config.KaitunCurrentSea = currentSea
 
                     -- Tự động phân bổ Stats & Mua Võ
                     MasterKaitunModule.AllocateStats()
@@ -3611,13 +3704,13 @@ function MasterKaitunModule.Init()
                     -- ========================================================
                     if currentSea == 1 then
                         -- Kiểm tra nhiệm vụ Saber (Lv 200+)
-                        if level >= 200 and CPHub.Config.KaitunAutoSaber then
+                        if level >= 200 and LurnaHub.Config.KaitunAutoSaber then
                             local doneSaber = MasterKaitunModule.SolveSaberQuest()
                             if not doneSaber then return end
                         end
 
                         -- Kiểm tra nhiệm vụ chuyển Sea 2 (Lv 700+)
-                        if level >= 700 and CPHub.Config.KaitunAutoNextSea then
+                        if level >= 700 and LurnaHub.Config.KaitunAutoNextSea then
                             MasterKaitunModule.SolveSea1To2Transition()
                             return
                         end
@@ -3627,24 +3720,24 @@ function MasterKaitunModule.Init()
                     -- ========================================================
                     elseif currentSea == 2 then
                         -- Kiểm tra Bartilo Quest (Lv 850+)
-                        if level >= 850 and CPHub.Config.KaitunAutoBartilo then
+                        if level >= 850 and LurnaHub.Config.KaitunAutoBartilo then
                             MasterKaitunModule.SolveBartiloQuest()
                         end
 
                         -- Kiểm tra nhiệm vụ Hoa V2 (Lv 850+)
-                        if level >= 850 and CPHub.Config.KaitunAutoRaceV2 then
+                        if level >= 850 and LurnaHub.Config.KaitunAutoRaceV2 then
                             pcall(function()
                                 local bp = LocalPlayer:FindFirstChild("Backpack")
                                 local hasFlowers = bp and bp:FindFirstChild("Flower 1") and bp:FindFirstChild("Flower 2") and bp:FindFirstChild("Flower 3")
                                 if hasFlowers then
                                     SmoothTweenTo(CFrame.new(-2910, 73, -3830))
-                                    ReplicatedStorage.Remotes.CommF_:InvokeServer("Alchemist", "Buy")
+                                    pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("Alchemist", "Buy") end)
                                 end
                             end)
                         end
 
                         -- Kiểm tra nhiệm vụ chuyển Sea 3 (Lv 1500+)
-                        if level >= 1500 and CPHub.Config.KaitunAutoNextSea then
+                        if level >= 1500 and LurnaHub.Config.KaitunAutoNextSea then
                             MasterKaitunModule.SolveSea2To3Transition()
                             return
                         end
@@ -3654,20 +3747,20 @@ function MasterKaitunModule.Init()
                     -- ========================================================
                     elseif currentSea == 3 then
                         if level >= 2550 then
-                            CPHub.Config.KaitunStatus = "🌟 ĐÃ ĐẠT CẤP ĐỘ TỐI ĐA MAX LEVEL 2550!"
+                            LurnaHub.Config.KaitunStatus = "🌟 ĐÃ ĐẠT CẤP ĐỘ TỐI ĐA MAX LEVEL 2550!"
                             return
                         end
                     end
 
                     -- SĂN BOUNTY NGƯỜI CHƠI GẦN TRONG TIẾN TRÌNH KAITUN (M1 BYPASS)
-                    if CPHub.Config.AutoBountyNearPlayer and MasterPvPBountyModule then
-                        local bountyTarget = MasterPvPBountyModule.GetNearbyEligiblePlayer(tonumber(CPHub.Config.BountyDetectRadius) or 250)
+                    if LurnaHub.Config.AutoBountyNearPlayer and MasterPvPBountyModule then
+                        local bountyTarget = MasterPvPBountyModule.GetNearbyEligiblePlayer(tonumber(LurnaHub.Config.BountyDetectRadius) or 250)
                         if bountyTarget and bountyTarget.Character and bountyTarget.Character:FindFirstChild("HumanoidRootPart") and bountyTarget.Character:FindFirstChild("Humanoid") and bountyTarget.Character.Humanoid.Health > 0 then
                             local tHRP = bountyTarget.Character:FindFirstChild("HumanoidRootPart")
                             local tData = bountyTarget:FindFirstChild("Data")
                             local tLevel = tData and tData:FindFirstChild("Level") and tData.Level.Value or "N/A"
                             if tHRP then
-                                CPHub:SetAction("⚔️ [Auto Bounty] Đang đập người chơi gần: " .. bountyTarget.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V Bypass M1")
+                                LurnaHub:SetAction("⚔️ [Auto Bounty] Đang đập người chơi gần: " .. bountyTarget.Name .. " (Lv " .. tostring(tLevel) .. ")", "Combo Skill Z-X-C-V Bypass M1")
                                 SmoothTweenTo(tHRP.CFrame * CFrame.new(0, 4, -3))
                                 MasterPvPBountyModule.ExecuteSkillCombo(bountyTarget.Character)
                                 return
@@ -3694,17 +3787,17 @@ function MasterKaitunModule.Init()
 
                     -- Smart Quest & Island Transition Check
                     if isQuestActive and questTitle ~= "" and not string.find(string.lower(questTitle), string.lower(quest.QuestName)) and not string.find(string.lower(questTitle), string.lower(mobData.MobName)) then
-                        CPHub:SetAction("Đủ level -> Hủy quest cũ & chuyển bãi mới", "Mục tiêu: " .. mobData.FullName)
+                        LurnaHub:SetAction("Đủ level -> Hủy quest cũ & chuyển bãi mới", "Mục tiêu: " .. mobData.FullName)
                         pcall(function()
                             ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
                         end)
                         isQuestActive = false
                     end
 
-                    CPHub.Config.KaitunStatus = string.format("[Sea %d] Level %d: Đang farm %s (Quest: %s)", currentSea, level, mobData.FullName, quest.QuestName)
+                    LurnaHub.Config.KaitunStatus = string.format("[Sea %d] Level %d: Đang farm %s (Quest: %s)", currentSea, level, mobData.FullName, quest.QuestName)
 
                     if not isQuestActive then
-                        CPHub:SetAction("Đang bay nhận Quest: " .. quest.QuestName, "NPC: " .. (quest.QuestNPC or mobData.FullName))
+                        LurnaHub:SetAction("Đang bay nhận Quest: " .. quest.QuestName, "NPC: " .. (quest.QuestNPC or mobData.FullName))
                         SmoothTweenTo(npcCF)
                         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                             if (LocalPlayer.Character.HumanoidRootPart.Position - npcCF.Position).Magnitude < 18 then
@@ -3712,7 +3805,7 @@ function MasterKaitunModule.Init()
                                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                                     if commF then 
                                         commF:InvokeServer("StartQuest", quest.QuestName, quest.QuestLevel)
-                                        CPHub:SetAction("Đã nhận Quest: " .. quest.QuestName, "Bắt đầu bay farm quái")
+                                        LurnaHub:SetAction("Đã nhận Quest: " .. quest.QuestName, "Bắt đầu bay farm quái")
                                     end
                                 end)
                             end
@@ -3723,14 +3816,14 @@ function MasterKaitunModule.Init()
                             local mobHRP = targetMob.HumanoidRootPart
                             PosMon = mobHRP.Position
                             BringEnemy(mobHRP.Position, mobData.MobName)
-                            local tool = weaponSc(CPHub.Config.SelectWeapon)
-                            local hoverHeight = tonumber(CPHub.Config.FarmHoverHeight) or 8
+                            local tool = weaponSc(LurnaHub.Config.SelectWeapon)
+                            local hoverHeight = tonumber(LurnaHub.Config.FarmHoverHeight) or 8
                             local farmCF = (mobHRP.CFrame * CFrame.new(0, hoverHeight, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
-                            CPHub:SetAction("Đang lơ lửng đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
+                            LurnaHub:SetAction("Đang lơ lửng đấm quái (Gom 350 studs)", "Quái: " .. mobData.MobName)
                             SmoothTweenTo(farmCF)
                         else
                             local spawnCF = mobData.SpawnLocation and mobData.SpawnLocation[1] or quest.QuestCFrame
-                            CPHub:SetAction("Đang chờ quái hồi sinh", "Khu vực: " .. mobData.FullName)
+                            LurnaHub:SetAction("Đang chờ quái hồi sinh", "Khu vực: " .. mobData.FullName)
                             SmoothTweenTo(spawnCF * CFrame.new(0, 25, 0))
                         end
                     end
@@ -3778,11 +3871,11 @@ end
 
 -- Vòng Lặp Chính Điều Phối Pipeline 5 Giai Đoạn Của Super Kaitun
 function MasterSuperKaitunModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Ultimate Super Kaitun Pipeline Engine (All Items, 1B Beli, 1M Frags, Full V4, 30M Bounty)...")
+    LurnaHub:Debug("INFO", "Khoi chay Ultimate Super Kaitun Pipeline Engine (All Items, 1B Beli, 1M Frags, Full V4, 30M Bounty)...")
     
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.SuperKaitun then
+            if LurnaHub.Config.SuperKaitun then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -3799,12 +3892,12 @@ function MasterSuperKaitunModule.Init()
                     -- GIAI ĐOẠN 1: CÀY LEVEL MAX 2550 & MỞ SEA 1/2/3
                     -- ========================================================
                     if level < 2550 then
-                        CPHub.Config.SuperKaitunStage = 1
-                        CPHub.Config.AutoKaitun = true
-                        CPHub.Config.KaitunAutoNextSea = true
-                        CPHub.Config.KaitunAutoStats = true
-                        CPHub.Config.KaitunAutoBuyFightingStyles = true
-                        CPHub.Config.SuperKaitunStatus = string.format("[Super Kaitun 1/5] Cày Level: %d/2550 | %s", level, CPHub.Config.KaitunStatus)
+                        LurnaHub.Config.SuperKaitunStage = 1
+                        LurnaHub.Config.AutoKaitun = true
+                        LurnaHub.Config.KaitunAutoNextSea = true
+                        LurnaHub.Config.KaitunAutoStats = true
+                        LurnaHub.Config.KaitunAutoBuyFightingStyles = true
+                        LurnaHub.Config.SuperKaitunStatus = string.format("[Super Kaitun 1/5] Cày Level: %d/2550 | %s", level, LurnaHub.Config.KaitunStatus)
                         return
                     end
 
@@ -3821,63 +3914,63 @@ function MasterSuperKaitunModule.Init()
                     local hasHallowScythe = MasterSuperKaitunModule.HasWeapon("Hallow Scythe")
 
                     if not (hasSaber and hasCDK and hasSoulGuitar and hasTTK and hasSharkAnchor and hasHallowScythe) then
-                        CPHub.Config.SuperKaitunStage = 2
-                        CPHub.Config.AutoKaitun = false
+                        LurnaHub.Config.SuperKaitunStage = 2
+                        LurnaHub.Config.AutoKaitun = false
 
                         -- 1. Saber Quest
                         if not hasSaber then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang làm chuỗi nhiệm vụ Kiếm Saber..."
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang làm chuỗi nhiệm vụ Kiếm Saber..."
                             MasterKaitunModule.SolveSaberQuest()
                             return
                         end
 
                         -- 2. Yama Quest (30 Elite Hunter Mobs)
                         if not hasYama then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang hoàn thành 30 Elite Hunter lấy Kiếm Yama..."
-                            CPHub.Config.AutoObtainYama = true
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang hoàn thành 30 Elite Hunter lấy Kiếm Yama..."
+                            LurnaHub.Config.AutoObtainYama = true
                             return
                         end
 
                         -- 3. Tushita Quest (Hydra Waterfall Torches + Longma)
                         if not hasTushita then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang làm nhiệm vụ 5 Ngọn Đuốc & Diệt Longma lấy Tushita..."
-                            CPHub.Config.AutoObtainTushita = true
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang làm nhiệm vụ 5 Ngọn Đuốc & Diệt Longma lấy Tushita..."
+                            LurnaHub.Config.AutoObtainTushita = true
                             return
                         end
 
                         -- 4. CDK Quest (Cursed Dual Katana)
                         if not hasCDK then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang giải đố Đền Thờ CDK (Tushita & Yama Trials)..."
-                            CPHub.Config.AutoObtainCDK = true
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang giải đố Đền Thờ CDK (Tushita & Yama Trials)..."
+                            LurnaHub.Config.AutoObtainCDK = true
                             return
                         end
 
                         -- 5. Soul Guitar Quest
                         if not hasSoulGuitar then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang giải mã Bia Mộ & Nến Bí Ẩn lấy Soul Guitar..."
-                            CPHub.Config.AutoObtainSoulGuitar = true
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang giải mã Bia Mộ & Nến Bí Ẩn lấy Soul Guitar..."
+                            LurnaHub.Config.AutoObtainSoulGuitar = true
                             return
                         end
 
                         -- 6. Shark Anchor (Monster Magnet + Terror Shark)
                         if not hasSharkAnchor then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang chế tạo Nam Châm Quái Vật & Săn Shark Anchor..."
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang chế tạo Nam Châm Quái Vật & Săn Shark Anchor..."
                             commF:InvokeServer("SharkAnchor", "CraftMagnet")
-                            CPHub.Config.AutoObtainSharkAnchor = true
+                            LurnaHub.Config.AutoObtainSharkAnchor = true
                             return
                         end
 
                         -- 7. True Triple Katana (TTK)
                         if not hasTTK then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang theo dõi và Mua 3 Kiếm Huyền Thoại (TTK)..."
-                            CPHub.Config.AutoObtainTTK = true
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang theo dõi và Mua 3 Kiếm Huyền Thoại (TTK)..."
+                            LurnaHub.Config.AutoObtainTTK = true
                             return
                         end
 
                         -- 8. Hallow Scythe (Soul Reaper Boss)
                         if not hasHallowScythe then
-                            CPHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang triệu hồi Soul Reaper lấy Lưỡi Hái Hallow Scythe..."
-                            CPHub.Config.AutoObtainHallowScythe = true
+                            LurnaHub.Config.SuperKaitunStatus = "[Super Kaitun 2/5] Đang triệu hồi Soul Reaper lấy Lưỡi Hái Hallow Scythe..."
+                            LurnaHub.Config.AutoObtainHallowScythe = true
                             return
                         end
                     end
@@ -3886,22 +3979,22 @@ function MasterSuperKaitunModule.Init()
                     -- GIAI ĐOẠN 3: CÀY FULL 6 TỘC V4 LÊN TIER 5 MAX GEAR
                     -- ========================================================
                     local currentRace = data and data:FindFirstChild("Race") and data.Race.Value or "Human"
-                    if CPHub.Config.SuperKaitunUnlockSixRacesV4 then
-                        CPHub.Config.SuperKaitunStage = 3
-                        CPHub.Config.AutoKaitun = false
+                    if LurnaHub.Config.SuperKaitunUnlockSixRacesV4 then
+                        LurnaHub.Config.SuperKaitunStage = 3
+                        LurnaHub.Config.AutoKaitun = false
 
                         -- Kiểm tra nếu Tộc hiện tại chưa V4 Max
                         local masteryInfo = commF:InvokeServer("RaceV4Progress", "CheckMastery")
                         local isCurrentRaceMaxed = (masteryInfo == "Maxed" or masteryInfo == 5)
 
                         if not isCurrentRaceMaxed then
-                            CPHub.Config.SuperKaitunStatus = string.format("[Super Kaitun 3/5] Đang vượt Thử Thách Đền Thời Gian: Tộc %s V4", currentRace)
-                            CPHub.Config.AutoCompleteTrial = true
-                            CPHub.Config.AutoPullLever = true
+                            LurnaHub.Config.SuperKaitunStatus = string.format("[Super Kaitun 3/5] Đang vượt Thử Thách Đền Thời Gian: Tộc %s V4", currentRace)
+                            LurnaHub.Config.AutoCompleteTrial = true
+                            LurnaHub.Config.AutoPullLever = true
                             return
                         else
                             -- Nếu đã Max tộc hiện tại, tự động đổi sang Tộc tiếp theo bằng Fragments
-                            CPHub.Config.SuperKaitunStatus = string.format("[Super Kaitun 3/5] Tộc %s đã Max V4! Đang đổi sang Tộc mới...", currentRace)
+                            LurnaHub.Config.SuperKaitunStatus = string.format("[Super Kaitun 3/5] Tộc %s đã Max V4! Đang đổi sang Tộc mới...", currentRace)
                             if frags >= 3000 then
                                 commF:InvokeServer("BlackbeardReward", "Reroll", "2")
                                 task.wait(1)
@@ -3913,12 +4006,12 @@ function MasterSuperKaitunModule.Init()
                     -- ========================================================
                     -- GIAI ĐOẠN 4: CÀY 1 TỶ BELI (1B) & 1 TRIỆU FRAGMENTS (1M)
                     -- ========================================================
-                    local targetBeli = CPHub.Config.SuperKaitunTargetBeli or 1000000000
-                    local targetFrags = CPHub.Config.SuperKaitunTargetFrags or 1000000
+                    local targetBeli = LurnaHub.Config.SuperKaitunTargetBeli or 1000000000
+                    local targetFrags = LurnaHub.Config.SuperKaitunTargetFrags or 1000000
 
                     if beli < targetBeli or frags < targetFrags then
-                        CPHub.Config.SuperKaitunStage = 4
-                        CPHub.Config.SuperKaitunStatus = string.format(
+                        LurnaHub.Config.SuperKaitunStage = 4
+                        LurnaHub.Config.SuperKaitunStatus = string.format(
                             "[Super Kaitun 4/5] Cày Kinh Tế Đa Nguồn: Beli: %s/1B | Frags: %s/1M",
                             tostring(math.floor(beli / 1000000)) .. "M",
                             tostring(math.floor(frags / 1000)) .. "k"
@@ -3926,17 +4019,17 @@ function MasterSuperKaitunModule.Init()
 
                         -- Ưu tiên 1: Nếu Frags chưa đủ 1M ➔ Tự động Spam Raid liên tục
                         if frags < targetFrags then
-                            CPHub.Config.AutoRaid = true
-                            CPHub.Config.SelectRaidChip = "Flame"
-                            CPHub.Config.AutoBuyChip = true
+                            LurnaHub.Config.AutoRaid = true
+                            LurnaHub.Config.SelectRaidChip = "Flame"
+                            LurnaHub.Config.AutoBuyChip = true
                             return
                         end
 
                         -- Ưu tiên 2: Nếu Beli chưa đủ 1B ➔ Săn Quái Biển Danger Zone 6 & Gom Rương Beli
                         if beli < targetBeli then
-                            CPHub.Config.AutoSeaBeast = true
-                            CPHub.Config.AutoTerrorShark = true
-                            CPHub.Config.AutoChest = true
+                            LurnaHub.Config.AutoSeaBeast = true
+                            LurnaHub.Config.AutoTerrorShark = true
+                            LurnaHub.Config.AutoChest = true
                             return
                         end
                     end
@@ -3944,17 +4037,17 @@ function MasterSuperKaitunModule.Init()
                     -- ========================================================
                     -- GIAI ĐOẠN 5: SĂN 30 TRIỆU BOUNTY (30M BOUNTY PVP HUNTER)
                     -- ========================================================
-                    local targetBounty = CPHub.Config.SuperKaitunTargetBounty or 30000000
+                    local targetBounty = LurnaHub.Config.SuperKaitunTargetBounty or 30000000
                     if bountyVal < targetBounty then
-                        CPHub.Config.SuperKaitunStage = 5
-                        CPHub.Config.SuperKaitunStatus = string.format(
+                        LurnaHub.Config.SuperKaitunStage = 5
+                        LurnaHub.Config.SuperKaitunStatus = string.format(
                             "[Super Kaitun 5/5] Săn 30M Bounty PvP: %s/30M | Đang săn người chơi...",
                             tostring(math.floor(bountyVal / 1000000)) .. "M"
                         )
-                        CPHub.Config.AutoBounty = true
+                        LurnaHub.Config.AutoBounty = true
                         return
                     else
-                        CPHub.Config.SuperKaitunStatus = "🏆 CHÚC MỪNG! ĐÃ HOÀN THÀNH 100% TOÀN BỘ MỤC TIÊU SUPER KAITUN!"
+                        LurnaHub.Config.SuperKaitunStatus = "🏆 CHÚC MỪNG! ĐÃ HOÀN THÀNH 100% TOÀN BỘ MỤC TIÊU SUPER KAITUN!"
                     end
                 end)
             end
@@ -3969,18 +4062,18 @@ local MasterMasteryFarmModule = {
 }
 
 function MasterMasteryFarmModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Weapon Mastery Farm & Skill Spammer Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Weapon Mastery Farm & Skill Spammer Engine...")
     task.spawn(function()
         while task.wait(0.3) do
-            if CPHub.Config.StartLockMastery or CPHub.Config.AutoFarmMastery then
+            if LurnaHub.Config.StartLockMastery or LurnaHub.Config.AutoFarmMastery then
                 pcall(function()
-                    local targetMastery = tonumber(CPHub.Config.SelectLockMastery) or 600
-                    local weaponType = CPHub.Config.SelectWeaponLockMastery or "Melee"
+                    local targetMastery = tonumber(LurnaHub.Config.SelectLockMastery) or 600
+                    local weaponType = LurnaHub.Config.SelectWeaponLockMastery or "Melee"
                     local tool = weaponSc(weaponType)
                     
                     if tool and tool:FindFirstChild("Level") and tool.Level.Value >= targetMastery then
-                        CPHub:Debug("SUCCESS", "Vũ khí " .. tool.Name .. " đã đạt mốc Mastery: " .. tostring(targetMastery))
-                        CPHub.Config.StartLockMastery = false
+                        LurnaHub:Debug("SUCCESS", "Vũ khí " .. tool.Name .. " đã đạt mốc Mastery: " .. tostring(targetMastery))
+                        LurnaHub.Config.StartLockMastery = false
                         return
                     end
 
@@ -4038,10 +4131,10 @@ local MasterBoatSailorModule = {
 }
 
 function MasterBoatSailorModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Boat Driver & Danger Level 1-6 Sailor Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Boat Driver & Danger Level 1-6 Sailor Engine...")
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoSailDangerZone or CPHub.Config.AutoLeviathan then
+            if LurnaHub.Config.AutoSailDangerZone or LurnaHub.Config.AutoLeviathan then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -4065,7 +4158,7 @@ function MasterBoatSailorModule.Init()
 
                     -- Mua thuyền nếu chưa có
                     if not myBoat then
-                        CPHub:Debug("INFO", "Tạo Thuyền mới tại Bến Thuyền...")
+                        LurnaHub:Debug("INFO", "Tạo Thuyền mới tại Bến Thuyền...")
                         commF:InvokeServer("BuyBoat", "Enforcer")
                         task.wait(1)
                         return
@@ -4089,14 +4182,14 @@ function MasterBoatSailorModule.Init()
                         local bodyVelocity = myBoat.PrimaryPart:FindFirstChild("CP_BoatVelocity") or Instance.new("BodyVelocity")
                         bodyVelocity.Name = "CP_BoatVelocity"
                         bodyVelocity.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-                        bodyVelocity.Velocity = (seaCenter - myBoat.PrimaryPart.Position).Unit * tonumber(CPHub.Config.ShipSpeed or 180)
+                        bodyVelocity.Velocity = (seaCenter - myBoat.PrimaryPart.Position).Unit * tonumber(LurnaHub.Config.ShipSpeed or 180)
                         bodyVelocity.Parent = myBoat.PrimaryPart
                     end
 
                     -- Bước 4: Săn Leviathan & Bắn Giáo Móc (Harpoon)
                     local leviathanHead = Workspace:FindFirstChild("Enemies") and Workspace.Enemies:FindFirstChild("Leviathan Head")
                     if leviathanHead and leviathanHead:FindFirstChild("HumanoidRootPart") then
-                        CPHub:Debug("SUCCESS", "Phát hiện Leviathan! Khai hỏa Súng Phóng Lao Harpoon...")
+                        LurnaHub:Debug("SUCCESS", "Phát hiện Leviathan! Khai hỏa Súng Phóng Lao Harpoon...")
                         commF:InvokeServer("Harpoon", "Shoot", leviathanHead.HumanoidRootPart.Position)
                     end
                 end)
@@ -4185,10 +4278,10 @@ local MasterRaceV4TrialsSolver = {
 }
 
 function MasterRaceV4TrialsSolver.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Race V4 Temple of Time Trials Solver Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Race V4 Temple of Time Trials Solver Engine...")
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.AutoCompleteTrial or CPHub.Config.AutoRaceV4 then
+            if LurnaHub.Config.AutoCompleteTrial or LurnaHub.Config.AutoRaceV4 then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
@@ -4202,7 +4295,7 @@ function MasterRaceV4TrialsSolver.Init()
                     local temple = map and map:FindFirstChild("Temple of Time")
 
                     -- Bước 1: Kéo Cần Gạt Đền Thời Gian (Temple Lever)
-                    if CPHub.Config.AutoPullLever then
+                    if LurnaHub.Config.AutoPullLever then
                         local lever = temple and temple:FindFirstChild("Lever", true)
                         if lever then
                             SmoothTweenTo(lever.CFrame)
@@ -4243,7 +4336,7 @@ function MasterRaceV4TrialsSolver.Init()
                                 if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
                                     PosMon = mob.HumanoidRootPart.Position
                                     BringEnemy()
-                                    weaponSc(CPHub.Config.SelectWeapon)
+                                    weaponSc(LurnaHub.Config.SelectWeapon)
                                     SmoothTweenTo(mob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                                     break
                                 end
@@ -4274,7 +4367,7 @@ function MasterRaceV4TrialsSolver.Init()
                                     if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
                                         PosMon = mob.HumanoidRootPart.Position
                                         BringEnemy()
-                                        weaponSc(CPHub.Config.SelectWeapon)
+                                        weaponSc(LurnaHub.Config.SelectWeapon)
                                         SmoothTweenTo(mob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                                         break
                                     end
@@ -4297,7 +4390,7 @@ function MasterRaceV4TrialsSolver.Init()
                                 if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
                                     PosMon = mob.HumanoidRootPart.Position
                                     BringEnemy()
-                                    weaponSc(CPHub.Config.SelectWeapon)
+                                    weaponSc(LurnaHub.Config.SelectWeapon)
                                     SmoothTweenTo(mob.HumanoidRootPart.CFrame * CFrame.new(0, 18, 0))
                                     break
                                 end
@@ -4321,7 +4414,7 @@ end
 
 local MasterAntiBanAndSecurityModule = {}
 function MasterAntiBanAndSecurityModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Anti-Ban & Exploit Protection Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Anti-Ban & Exploit Protection Engine...")
     
     -- Loop 1: Anti-Stun, Anti-Freeze, Anti-Ragdoll, Anti-Sit Bypass
     task.spawn(function()
@@ -4372,7 +4465,7 @@ function MasterAntiBanAndSecurityModule.Init()
         LocalPlayer.Idled:Connect(function()
             VirtualUser:CaptureController()
             VirtualUser:ClickButton2(Vector2.new(0, 0))
-            CPHub:Debug("INFO", "Anti-AFK: Đã gửi tín hiệu chống văng sau 20 phút!")
+            LurnaHub:Debug("INFO", "Anti-AFK: Đã gửi tín hiệu chống văng sau 20 phút!")
         end)
     end)
 
@@ -4380,33 +4473,33 @@ function MasterAntiBanAndSecurityModule.Init()
     task.spawn(function()
         local isEscaping = false
         while task.wait(0.25) do
-            if CPHub.Config.AutoEscapeLowHP then
+            if LurnaHub.Config.AutoEscapeLowHP then
                 pcall(function()
                     local char = LocalPlayer.Character
                     local hum = char and char:FindFirstChild("Humanoid")
                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
                     if not hum or not hrp then return end
 
-                    local threshold = (tonumber(CPHub.Config.LowHPThreshold) or 25) / 100
+                    local threshold = (tonumber(LurnaHub.Config.LowHPThreshold) or 25) / 100
                     if hum.Health > 0 and hum.Health < hum.MaxHealth * threshold then
                         if not isEscaping then
                             isEscaping = true
-                            CPHub:SetAction("⚠️ [Máu Dưới 25%] Đang bay lên không trung 2500m & Reset né mất Bounty!", "Bảo vệ Bounty")
+                            LurnaHub:SetAction("⚠️ [Máu Dưới 25%] Đang bay lên không trung 2500m & Reset né mất Bounty!", "Bảo vệ Bounty")
                             
                             -- Bay lên độ cao an toàn (2500 studs)
-                            local safeHeight = tonumber(CPHub.Config.SafeEscapeHeight) or 2500
+                            local safeHeight = tonumber(LurnaHub.Config.SafeEscapeHeight) or 2500
                             local safeCF = CFrame.new(hrp.Position.X, safeHeight, hrp.Position.Z)
                             SmoothTweenTo(safeCF, 450)
                             
                             task.wait(3.5)
                             
                             -- Tự động Reset nhân vật để hồi phục 100% HP mà không mất Bounty
-                            if CPHub.Config.AutoResetLowHP and hum.Health > 0 and hum.Health < hum.MaxHealth * 0.4 then
+                            if LurnaHub.Config.AutoResetLowHP and hum.Health > 0 and hum.Health < hum.MaxHealth * 0.4 then
                                 pcall(function()
                                     char:BreakJoints()
                                     hum.Health = 0
                                 end)
-                                CPHub:SetAction("🔄 Đã Reset an toàn! Hồi sinh 100% HP tại đảo", "Bảo toàn Bounty thành công")
+                                LurnaHub:SetAction("🔄 Đã Reset an toàn! Hồi sinh 100% HP tại đảo", "Bảo toàn Bounty thành công")
                                 task.wait(5)
                             end
                             isEscaping = false
@@ -4433,7 +4526,7 @@ local MasterKaitunTelemetryModule = {
 }
 
 function MasterKaitunTelemetryModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Kaitun Telemetry & AFK Stats Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Kaitun Telemetry & AFK Stats Engine...")
     task.spawn(function()
         task.wait(3)
         pcall(function()
@@ -4473,8 +4566,8 @@ function MasterKaitunTelemetryModule.Init()
                     beliGained, beliPerHour, fragsGained, fragsPerHour
                 )
                 
-                if CPHub.Config.AutoKaitun then
-                    CPHub:Debug("INFO", telemetryReport)
+                if LurnaHub.Config.AutoKaitun then
+                    LurnaHub:Debug("INFO", telemetryReport)
                 end
             end)
         end
@@ -4487,7 +4580,7 @@ end
 
 local MasterDiscordWebhookModule = {}
 function MasterDiscordWebhookModule.SendEmbed(title, description, color, fields, thumbnailUrl)
-    if not CPHub.Config.WebhookEnabled or not CPHub.Config.WebhookUrl or CPHub.Config.WebhookUrl == "" then return end
+    if not LurnaHub.Config.WebhookEnabled or not LurnaHub.Config.WebhookUrl or LurnaHub.Config.WebhookUrl == "" then return end
     task.spawn(function()
         pcall(function()
             local httpReq = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
@@ -4512,7 +4605,7 @@ function MasterDiscordWebhookModule.SendEmbed(title, description, color, fields,
             })
 
             httpReq({
-                Url = CPHub.Config.WebhookUrl,
+                Url = LurnaHub.Config.WebhookUrl,
                 Method = "POST",
                 Headers = { ["Content-Type"] = "application/json" },
                 Body = payload
@@ -4522,10 +4615,10 @@ function MasterDiscordWebhookModule.SendEmbed(title, description, color, fields,
 end
 
 function MasterDiscordWebhookModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Discord Webhook & Live Telemetry Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Discord Webhook & Live Telemetry Engine...")
     task.spawn(function()
         while task.wait(3600) do
-            if CPHub.Config.WebhookEnabled and CPHub.Config.WebhookHourlyReport then
+            if LurnaHub.Config.WebhookEnabled and LurnaHub.Config.WebhookHourlyReport then
                 pcall(function()
                     local data = LocalPlayer:FindFirstChild("Data")
                     local level = data and data:FindFirstChild("Level") and data.Level.Value or 0
@@ -4567,29 +4660,29 @@ local MasterWebRemoteTelemetryModule = {
 
 function MasterWebRemoteTelemetryModule.Init()
     -- Khởi tạo Pairing Key duy nhất cho Acc
-    if not CPHub.Config.PairingKey or CPHub.Config.PairingKey == "" then
+    if not LurnaHub.Config.PairingKey or LurnaHub.Config.PairingKey == "" then
         local shortId = string.sub(tostring(LocalPlayer.UserId), -4)
         local randomCode = string.upper(string.sub(HttpService:GenerateGUID(false), 1, 4))
-        CPHub.Config.PairingKey = "CP-" .. shortId .. "-" .. randomCode
+        LurnaHub.Config.PairingKey = "LURNA-" .. shortId .. "-" .. randomCode
         MasterConfigModule.Save()
     end
-    CPHub.PairingKey = CPHub.Config.PairingKey
+    LurnaHub.PairingKey = LurnaHub.Config.PairingKey
 
     -- TỰ ĐỘNG SAO CHÉP MÃ ID VÀO CLIPBOARD & BẮN THÔNG BÁO POPUP TOAST
     pcall(function()
         if setclipboard then
-            setclipboard(tostring(CPHub.PairingKey))
+            setclipboard(tostring(LurnaHub.PairingKey))
         end
         local StarterGui = Services.StarterGui or game:GetService("StarterGui")
         StarterGui:SetCore("SendNotification", {
-            Title = "🔑 CP HUB WEB ID",
-            Text = "Mã ID: " .. tostring(CPHub.PairingKey) .. "\n(Đã tự động Copy vào Clipboard! Dán vào Web là xong)",
+            Title = "🔑 LURNA HUB WEB ID",
+            Text = "Mã ID: " .. tostring(LurnaHub.PairingKey) .. "\n(Đã tự động Copy vào Clipboard! Dán vào Web là xong)",
             Duration = 15,
             Icon = "rbxassetid://15298567397"
         })
     end)
     print("===================================================================")
-    print("⚡ [CP HUB CLOUD WEB ID]: " .. tostring(CPHub.PairingKey))
+    print("⚡ [LURNA HUB CLOUD WEB ID]: " .. tostring(LurnaHub.PairingKey))
     print("⚡ (Mã ID đã được tự động sao chép vào Clipboard - Chỉ cần Ctrl+V lên Web!)")
     print("===================================================================")
 
@@ -4617,9 +4710,9 @@ function MasterWebRemoteTelemetryModule.Init()
         return success, res
     end
 
-    local cleanKey = string.gsub(tostring(CPHub.PairingKey), "[^%w%-_]", "")
-    local telemetryTopic = "cp_telemetry_" .. cleanKey
-    local cmdTopic = "cp_cmd_" .. cleanKey
+    local cleanKey = string.gsub(tostring(LurnaHub.PairingKey), "[^%w%-_]", "")
+    local telemetryTopic = "lurna_telemetry_" .. cleanKey
+    local cmdTopic = "lurna_cmd_" .. cleanKey
 
     -- Luồng 1: Bắn dữ liệu Telemetry trực tiếp lên Web Dashboard (mỗi 2.5 giây)
     task.spawn(function()
@@ -4656,7 +4749,7 @@ function MasterWebRemoteTelemetryModule.Init()
                 end)
 
                 local questData = GetCurrentQuestData()
-                local currentIsland = questData and questData.FullName or ("Sea " .. tostring(CPHub.Config.KaitunCurrentSea or 1))
+                local currentIsland = questData and questData.FullName or ("Sea " .. tostring(LurnaHub.Config.KaitunCurrentSea or 1))
 
                 local storedFruits = {}
                 pcall(function()
@@ -4682,17 +4775,17 @@ function MasterWebRemoteTelemetryModule.Init()
                     bounty = bountyVal,
                     health = currentHp,
                     maxHealth = maxHp,
-                    sea = CPHub.Config.KaitunCurrentSea or 1,
+                    sea = LurnaHub.Config.KaitunCurrentSea or 1,
                     island = currentIsland,
                     fruits = storedFruits,
-                    currentAction = tostring(CPHub.CurrentAction or "Đang chạy CP Hub..."),
-                    currentTarget = tostring(CPHub.CurrentTarget or "Chưa có mục tiêu"),
-                    farmMode = tostring(CPHub.Config.SelectFarmMode or "Level"),
-                    weapon = tostring(CPHub.Config.SelectWeapon or "Melee"),
-                    fastAttack = CPHub.Config.FastAttack or false,
-                    superKaitun = CPHub.Config.SuperKaitun or false,
-                    autoBounty = CPHub.Config.AutoBounty or false,
-                    autoRaid = CPHub.Config.AutoRaid or false,
+                    currentAction = tostring(LurnaHub.CurrentAction or "Đang chạy CP Hub..."),
+                    currentTarget = tostring(LurnaHub.CurrentTarget or "Chưa có mục tiêu"),
+                    farmMode = tostring(LurnaHub.Config.SelectFarmMode or "Level"),
+                    weapon = tostring(LurnaHub.Config.SelectWeapon or "Melee"),
+                    fastAttack = LurnaHub.Config.FastAttack or false,
+                    superKaitun = LurnaHub.Config.SuperKaitun or false,
+                    autoBounty = LurnaHub.Config.AutoBounty or false,
+                    autoRaid = LurnaHub.Config.AutoRaid or false,
                     fps = currentFps,
                     ping = ping,
                     timestamp = os.time()
@@ -4739,46 +4832,46 @@ function MasterWebRemoteTelemetryModule.Init()
                                 local val = msgObj.value
 
                                 if action == "SetFarmMode" then
-                                    CPHub.Config.SelectFarmMode = val
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Chuyển sang Farm " .. tostring(val), "Remote Control")
+                                    LurnaHub.Config.SelectFarmMode = val
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: Chuyển sang Farm " .. tostring(val), "Remote Control")
                                     MasterConfigModule.Save()
                                 elseif action == "SetWeapon" then
-                                    CPHub.Config.SelectWeapon = val
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đổi vũ khí sang " .. tostring(val), "Remote Control")
+                                    LurnaHub.Config.SelectWeapon = val
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: Đổi vũ khí sang " .. tostring(val), "Remote Control")
                                     weaponSc(val)
                                     MasterConfigModule.Save()
                                 elseif action == "ToggleSuperKaitun" then
-                                    CPHub.Config.SuperKaitun = val
-                                    CPHub.Config.AutoKaitun = val
-                                    CPHub.Config.AutoFarm = val
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Super Kaitun" or "TẮT Super Kaitun"), "Remote Control")
+                                    LurnaHub.Config.SuperKaitun = val
+                                    LurnaHub.Config.AutoKaitun = val
+                                    LurnaHub.Config.AutoFarm = val
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Super Kaitun" or "TẮT Super Kaitun"), "Remote Control")
                                     MasterConfigModule.Save()
                                 elseif action == "ToggleFastAttack" then
-                                    CPHub.Config.FastAttack = val
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Fast Attack" or "TẮT Fast Attack"), "Remote Control")
+                                    LurnaHub.Config.FastAttack = val
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Fast Attack" or "TẮT Fast Attack"), "Remote Control")
                                     MasterConfigModule.Save()
                                 elseif action == "ToggleAutoBounty" then
-                                    CPHub.Config.AutoBounty = val
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Auto Bounty" or "TẮT Auto Bounty"), "Remote Control")
+                                    LurnaHub.Config.AutoBounty = val
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Auto Bounty" or "TẮT Auto Bounty"), "Remote Control")
                                     MasterConfigModule.Save()
                                 elseif action == "ToggleAutoRaid" then
-                                    CPHub.Config.AutoRaid = val
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Auto Raid" or "TẮT Auto Raid"), "Remote Control")
+                                    LurnaHub.Config.AutoRaid = val
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: " .. (val and "BẬT Auto Raid" or "TẮT Auto Raid"), "Remote Control")
                                     MasterConfigModule.Save()
                                 elseif action == "RollFruitGacha" then
-                                    CPHub:SetAction("🎰 Nhận lệnh từ Web: Đang quay Trái Gacha...", "Remote Control")
+                                    LurnaHub:SetAction("🎰 Nhận lệnh từ Web: Đang quay Trái Gacha...", "Remote Control")
                                     pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("Cousin", "Buy") end)
                                 elseif action == "StoreFruit" then
-                                    CPHub:SetAction("🍎 Nhận lệnh từ Web: Đang cất Trái vào Rương...", "Remote Control")
+                                    LurnaHub:SetAction("🍎 Nhận lệnh từ Web: Đang cất Trái vào Rương...", "Remote Control")
                                     pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", val) end)
                                 elseif action == "HopServer" then
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đang đổi Server mới...", "Remote Control")
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: Đang đổi Server mới...", "Remote Control")
                                     pcall(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
                                 elseif action == "ResetCharacter" then
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đang Reset nhân vật...", "Remote Control")
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: Đang Reset nhân vật...", "Remote Control")
                                     pcall(function() if LocalPlayer.Character then LocalPlayer.Character:BreakJoints() end end)
                                 elseif action == "EscapeSky" then
-                                    CPHub:SetAction("📱 Nhận lệnh từ Web: Đang bay lên 2500m trốn đòn...", "Remote Control")
+                                    LurnaHub:SetAction("📱 Nhận lệnh từ Web: Đang bay lên 2500m trốn đòn...", "Remote Control")
                                     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                                         SmoothTweenTo(LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2500, 0), 450)
                                     end
@@ -4798,15 +4891,15 @@ end
 
 local MasterKitsuneIslandModule = {}
 function MasterKitsuneIslandModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Kitsune Island & Azure Ember Sweeper Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Kitsune Island & Azure Ember Sweeper Engine...")
     task.spawn(function()
         while task.wait(1) do
-            if CPHub.Config.AutoKitsuneEvent then
+            if LurnaHub.Config.AutoKitsuneEvent then
                 pcall(function()
                     local kitsuneIsland = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("Kitsune Island") or Workspace:FindFirstChild("Kitsune Island")
                     if kitsuneIsland then
                         -- Collect Azure Embers
-                        if CPHub.Config.AutoCollectAzureEmbers then
+                        if LurnaHub.Config.AutoCollectAzureEmbers then
                             for _, ember in ipairs(Workspace:GetChildren()) do
                                 if ember.Name == "AzureEmber" or ember.Name:find("Ember") then
                                     local part = ember:IsA("BasePart") and ember or ember:FindFirstChildWhichIsA("BasePart", true)
@@ -4829,7 +4922,7 @@ function MasterKitsuneIslandModule.Init()
                         end
 
                         -- Trade at Shrine
-                        if CPHub.Config.AutoTradeKitsuneShrine then
+                        if LurnaHub.Config.AutoTradeKitsuneShrine then
                             local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                             if commF then
                                 commF:InvokeServer("KitsuneStatue", "Trade")
@@ -4848,16 +4941,16 @@ end
 
 local MasterLeviathanHunterModule = {}
 function MasterLeviathanHunterModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Master Leviathan Frozen Dimension & Heart Harpooner Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Master Leviathan Frozen Dimension & Heart Harpooner Engine...")
     task.spawn(function()
         while task.wait(2) do
-            if CPHub.Config.AutoLeviathanHunter then
+            if LurnaHub.Config.AutoLeviathanHunter then
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if not commF then return end
 
                     -- Bribe Tiki Outpost Spy
-                    if CPHub.Config.AutoBriberySpy then
+                    if LurnaHub.Config.AutoBriberySpy then
                         commF:InvokeServer("Spy", "Clues")
                         commF:InvokeServer("Spy", "Bribe")
                     end
@@ -4866,12 +4959,12 @@ function MasterLeviathanHunterModule.Init()
                     local leviathan = Workspace:FindFirstChild("Enemies") and (Workspace.Enemies:FindFirstChild("Leviathan") or Workspace.Enemies:FindFirstChild("LeviathanSegment"))
                     if leviathan and leviathan:FindFirstChild("HumanoidRootPart") then
                         PosMon = leviathan.HumanoidRootPart.Position
-                        weaponSc(CPHub.Config.SelectWeapon)
+                        weaponSc(LurnaHub.Config.SelectWeapon)
                         SmoothTweenTo(leviathan.HumanoidRootPart.CFrame * CFrame.new(0, 35, 0))
                     end
 
                     -- Harpoon Leviathan Heart
-                    if CPHub.Config.AutoHarpoonLeviathanHeart then
+                    if LurnaHub.Config.AutoHarpoonLeviathanHeart then
                         local heart = Workspace:FindFirstChild("LeviathanHeart") or Workspace:FindFirstChild("Heart")
                         if heart and heart:IsA("BasePart") then
                             commF:InvokeServer("BeastHunter", "Harpoon", heart)
@@ -4890,10 +4983,10 @@ end
 
 local MasterStealthModule = {}
 function MasterStealthModule.Init()
-    CPHub:Debug("INFO", "Khoi chay Smart Stealth & Anti-Report Shield Engine...")
+    LurnaHub:Debug("INFO", "Khoi chay Smart Stealth & Anti-Report Shield Engine...")
     task.spawn(function()
         while task.wait(0.5) do
-            if CPHub.Config.SmartStealthMode then
+            if LurnaHub.Config.SmartStealthMode then
                 pcall(function()
                     local char = LocalPlayer.Character
                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -4914,12 +5007,12 @@ function MasterStealthModule.Init()
                     end
 
                     if nearStranger then
-                        CPHub.Config.FastAttackSpeed = 0.15
-                        CPHub.Config.FarmHoverHeight = 22
-                        CPHub:SetAction("🛡️ [Stealth Shield] Phát hiện người chơi lạ gần (Né Report)", "Giảm tốc độ Human-like")
+                        LurnaHub.Config.FastAttackSpeed = 0.15
+                        LurnaHub.Config.FarmHoverHeight = 22
+                        LurnaHub:SetAction("🛡️ [Stealth Shield] Phát hiện người chơi lạ gần (Né Report)", "Giảm tốc độ Human-like")
                     else
-                        CPHub.Config.FastAttackSpeed = 0.008
-                        CPHub.Config.FarmHoverHeight = 28
+                        LurnaHub.Config.FastAttackSpeed = 0.005
+                        LurnaHub.Config.FarmHoverHeight = 28
                     end
                 end)
             end
@@ -4950,7 +5043,7 @@ local function DestroyPreviousGuis()
     pcall(function()
         if CoreGui then
             for _, child in ipairs(CoreGui:GetChildren()) do
-                if child.Name == "CPHub_NativeGUI" or child.Name == "CPHub_ListModalOverlay" or child.Name == "CPHub_ESPFolder" then
+                if child.Name == "LurnaHub_NativeGUI" or child.Name == "LurnaHub_ListModalOverlay" or child.Name == "LurnaHub_ESPFolder" then
                     child:Destroy()
                 end
             end
@@ -4960,7 +5053,7 @@ local function DestroyPreviousGuis()
         local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
         if playerGui then
             for _, child in ipairs(playerGui:GetChildren()) do
-                if child.Name == "CPHub_NativeGUI" or child.Name == "CPHub_ListModalOverlay" or child.Name == "CPHub_ESPFolder" then
+                if child.Name == "LurnaHub_NativeGUI" or child.Name == "LurnaHub_ListModalOverlay" or child.Name == "LurnaHub_ESPFolder" then
                     child:Destroy()
                 end
             end
@@ -4969,7 +5062,7 @@ local function DestroyPreviousGuis()
 end
 
 local function CreateNativeUI()
-    CPHub:Debug("INFO", "Khởi tạo Giao diện CP Hub Dark Obsidian & Gold Accent UI...")
+    LurnaHub:Debug("INFO", "Khởi tạo Giao diện CP Hub Dark Obsidian & Gold Accent UI...")
     DestroyPreviousGuis()
 
     -- CENTRALIZABLE DESIGN SYSTEM & THEME TOKENS (EASY CUSTOMIZATION & PERFECT CORNERS)
@@ -4997,7 +5090,7 @@ local function CreateNativeUI()
     }
 
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "CPHub_NativeGUI"
+    ScreenGui.Name = "LurnaHub_NativeGUI"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.DisplayOrder = 9999
     ScreenGui.Parent = TargetGui
@@ -5154,7 +5247,7 @@ local function CreateNativeUI()
 
     -- Draggable Floating Toggle Button (Crisp Circular Gold Button)
     local FloatBtn = Instance.new("TextButton")
-    FloatBtn.Name = "CPHub_FloatingToggle"
+    FloatBtn.Name = "LurnaHub_FloatingToggle"
     FloatBtn.Size = UDim2.fromOffset(48, 48)
     FloatBtn.Position = UDim2.new(0.02, 0, 0.45, 0)
     FloatBtn.BackgroundColor3 = Color3.fromRGB(245, 230, 175)
@@ -5185,7 +5278,7 @@ local function CreateNativeUI()
 
     -- IN-GAME DRAGGABLE LIVE TELEMETRY MINI HUD (Positioned at Bottom-Left so it NEVER blocks the menu)
     local MiniHUD = Instance.new("Frame")
-    MiniHUD.Name = "CPHub_FloatingHUD"
+    MiniHUD.Name = "LurnaHub_FloatingHUD"
     MiniHUD.Size = UDim2.fromOffset(270, 170)
     MiniHUD.Position = UDim2.new(0.02, 0, 0.65, 0)
     MiniHUD.BackgroundColor3 = Color3.fromRGB(15, 16, 22)
@@ -5209,7 +5302,7 @@ local function CreateNativeUI()
     hudTitle.Size = UDim2.new(1, -16, 0, 18)
     hudTitle.Position = UDim2.new(0, 8, 0, 6)
     hudTitle.BackgroundTransparency = 1
-    hudTitle.Text = "⚡ CP HUB </> LIVE TELEMETRY"
+    hudTitle.Text = "⚡ LURNA HUB </> LIVE TELEMETRY"
     hudTitle.TextColor3 = Color3.fromRGB(245, 230, 175)
     hudTitle.TextSize = 10
     hudTitle.Font = Enum.Font.GothamBold
@@ -5282,7 +5375,7 @@ local function CreateNativeUI()
     hudWebIdBtn.Size = UDim2.new(1, -16, 0, 22)
     hudWebIdBtn.Position = UDim2.new(0, 8, 0, 108)
     hudWebIdBtn.BackgroundColor3 = Color3.fromRGB(35, 38, 50)
-    hudWebIdBtn.Text = "🔑 WEB ID: " .. tostring(CPHub.PairingKey or "CP-ID") .. " (CLICK COPY)"
+    hudWebIdBtn.Text = "🔑 WEB ID: " .. tostring(LurnaHub.PairingKey or "LURNA-ID") .. " (CLICK COPY)"
     hudWebIdBtn.TextColor3 = Color3.fromRGB(245, 230, 175)
     hudWebIdBtn.TextSize = 9.5
     hudWebIdBtn.Font = Enum.Font.GothamBold
@@ -5301,7 +5394,7 @@ local function CreateNativeUI()
 
     hudWebIdBtn.Activated:Connect(function()
         pcall(function()
-            local key = tostring(CPHub.PairingKey or CPHub.Config.PairingKey or "CP-ID")
+            local key = tostring(LurnaHub.PairingKey or LurnaHub.Config.PairingKey or "LURNA-ID")
             if setclipboard then setclipboard(key) end
             hudWebIdBtn.Text = "✓ ĐÃ SAO CHÉP MÃ ID!"
             task.delay(1.5, function()
@@ -5327,15 +5420,15 @@ local function CreateNativeUI()
     hudKaitunCorner.Parent = hudKaitunBtn
 
     hudKaitunBtn.Activated:Connect(function()
-        CPHub.Config.SuperKaitun = not CPHub.Config.SuperKaitun
-        CPHub.Config.AutoKaitun = CPHub.Config.SuperKaitun
-        CPHub.Config.AutoFarm = CPHub.Config.SuperKaitun
-        hudKaitunBtn.Text = CPHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
+        LurnaHub.Config.SuperKaitun = not LurnaHub.Config.SuperKaitun
+        LurnaHub.Config.AutoKaitun = LurnaHub.Config.SuperKaitun
+        LurnaHub.Config.AutoFarm = LurnaHub.Config.SuperKaitun
+        hudKaitunBtn.Text = LurnaHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
         MasterConfigModule.Save()
     end)
 
-    -- Hook dynamic CPHub.UpdateActionUI callback
-    CPHub.UpdateActionUI = function(action, target)
+    -- Hook dynamic LurnaHub.UpdateActionUI callback
+    LurnaHub.UpdateActionUI = function(action, target)
         pcall(function()
             hudActionRow.Text = "⚡ ĐANG LÀM: " .. tostring(action or "Đang chạy...")
             hudTargetRow.Text = "🎯 MỤC TIÊU: " .. tostring(target or "...")
@@ -5370,12 +5463,12 @@ local function CreateNativeUI()
                     ping = math.floor(stats.PerformanceStats.Ping:GetValue())
                 end)
 
-                hudRow1.Text = string.format("📊 Level: %d/2550 | Sea: %d", level, CPHub.Config.KaitunCurrentSea or 1)
+                hudRow1.Text = string.format("📊 Level: %d/2550 | Sea: %d", level, LurnaHub.Config.KaitunCurrentSea or 1)
                 hudRow2.Text = string.format("💰 Beli: $%s | 💎 Frags: %s", tostring(math.floor(beli / 1000)) .. "k", tostring(frags))
-                hudActionRow.Text = "⚡ ĐANG LÀM: " .. tostring(CPHub.CurrentAction or "Đang hoạt động...")
-                hudTargetRow.Text = "🎯 MỤC TIÊU: " .. tostring(CPHub.CurrentTarget or (CPHub.Config.KaitunStatus or "..."))
-                hudRow4.Text = string.format("📶 FPS: %d | Ping: %dms | Fast Attack: %s", currentFps, ping, CPHub.Config.FastAttack and "BẬT" or "TẮT")
-                hudKaitunBtn.Text = CPHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
+                hudActionRow.Text = "⚡ ĐANG LÀM: " .. tostring(LurnaHub.CurrentAction or "Đang hoạt động...")
+                hudTargetRow.Text = "🎯 MỤC TIÊU: " .. tostring(LurnaHub.CurrentTarget or (LurnaHub.Config.KaitunStatus or "..."))
+                hudRow4.Text = string.format("📶 FPS: %d | Ping: %dms | Fast Attack: %s", currentFps, ping, LurnaHub.Config.FastAttack and "BẬT" or "TẮT")
+                hudKaitunBtn.Text = LurnaHub.Config.SuperKaitun and "🟢 SUPER KAITUN: ĐANG BẬT" or "🔴 SUPER KAITUN: ĐÃ TẮT"
             end)
         end
     end)
@@ -5873,13 +5966,13 @@ local function CreateNativeUI()
         local currentSelected = defaultVal or (options and options[1])
         local function OpenModalSelector()
             pcall(function()
-                if ScreenGui:FindFirstChild("CPHub_ListModalOverlay") then
-                    ScreenGui.CPHub_ListModalOverlay:Destroy()
+                if ScreenGui:FindFirstChild("LurnaHub_ListModalOverlay") then
+                    ScreenGui.LurnaHub_ListModalOverlay:Destroy()
                 end
             end)
 
             local modalOverlay = Instance.new("Frame")
-            modalOverlay.Name = "CPHub_ListModalOverlay"
+            modalOverlay.Name = "LurnaHub_ListModalOverlay"
             modalOverlay.Size = UDim2.new(1, 0, 1, 0)
             modalOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
             modalOverlay.BackgroundTransparency = 0.5
@@ -6015,59 +6108,59 @@ local function CreateNativeUI()
 
     -- Left Column: 🏆 ULTIMATE SUPER KAITUN MACRO AUTOMATION
     AddSectionDivider(Left1, "🏆 ULTIMATE SUPER KAITUN (ALL IN ONE)")
-    AddCheckbox(Left1, "👑 BẬT SUPER KAITUN TOÀN DIỆN", CPHub.Config.SuperKaitun, function(v)
-        CPHub.Config.SuperKaitun = v
-        if v then CPHub.Config.AutoKaitun = true end
+    AddCheckbox(Left1, "👑 BẬT SUPER KAITUN TOÀN DIỆN", LurnaHub.Config.SuperKaitun, function(v)
+        LurnaHub.Config.SuperKaitun = v
+        if v then LurnaHub.Config.AutoKaitun = true end
         MasterConfigModule.Save()
-        CPHub:Debug("SUCCESS", "Kích hoạt Super Kaitun Toàn Diện: " .. tostring(v))
+        LurnaHub:Debug("SUCCESS", "Kích hoạt Super Kaitun Toàn Diện: " .. tostring(v))
     end)
-    AddCheckbox(Left1, "⚡ Tự Động Nhập Code x2 EXP Tối Ưu", CPHub.Config.AutoRedeemCode, function(v)
-        CPHub.Config.AutoRedeemCode = v
-        MasterConfigModule.Save()
-    end)
-    AddCheckbox(Left1, "Tự Cày Tất Cả Kiếm & Súng Huyền Thoại", CPHub.Config.SuperKaitunFarmAllSwords, function(v)
-        CPHub.Config.SuperKaitunFarmAllSwords = v
+    AddCheckbox(Left1, "⚡ Tự Động Nhập Code x2 EXP Tối Ưu", LurnaHub.Config.AutoRedeemCode, function(v)
+        LurnaHub.Config.AutoRedeemCode = v
         MasterConfigModule.Save()
     end)
-    AddCheckbox(Left1, "Tự Đổi & Thức Tỉnh Full 6 Tộc V4 Max Tier 5", CPHub.Config.SuperKaitunUnlockSixRacesV4, function(v)
-        CPHub.Config.SuperKaitunUnlockSixRacesV4 = v
+    AddCheckbox(Left1, "Tự Cày Tất Cả Kiếm & Súng Huyền Thoại", LurnaHub.Config.SuperKaitunFarmAllSwords, function(v)
+        LurnaHub.Config.SuperKaitunFarmAllSwords = v
+        MasterConfigModule.Save()
+    end)
+    AddCheckbox(Left1, "Tự Đổi & Thức Tỉnh Full 6 Tộc V4 Max Tier 5", LurnaHub.Config.SuperKaitunUnlockSixRacesV4, function(v)
+        LurnaHub.Config.SuperKaitunUnlockSixRacesV4 = v
         MasterConfigModule.Save()
     end)
     AddSlider(Left1, "Độ Cao Lơ Lửng Trên Đầu Quái", 4, 20, 8, "studs", function(v)
-        CPHub.Config.FarmHoverHeight = v
+        LurnaHub.Config.FarmHoverHeight = v
         MasterConfigModule.Save()
     end)
     AddSlider(Left1, "Mục Tiêu Beli Tích Lũy", 100, 1000, 1000, "M Beli", function(v)
-        CPHub.Config.SuperKaitunTargetBeli = v * 1000000
+        LurnaHub.Config.SuperKaitunTargetBeli = v * 1000000
         MasterConfigModule.Save()
     end)
     AddSlider(Left1, "Mục Tiêu Fragments Tích Lũy", 100, 1000, 1000, "k Frags", function(v)
-        CPHub.Config.SuperKaitunTargetFrags = v * 1000
+        LurnaHub.Config.SuperKaitunTargetFrags = v * 1000
         MasterConfigModule.Save()
     end)
     AddSlider(Left1, "Mục Tiêu Bounty PvP", 2, 30, 30, "M Bounty", function(v)
-        CPHub.Config.SuperKaitunTargetBounty = v * 1000000
+        LurnaHub.Config.SuperKaitunTargetBounty = v * 1000000
         MasterConfigModule.Save()
     end)
 
     -- Right Column: 🌟 AUTO KAITUN PRO ENGINE (1 - 2550 FULL PROGRESSION)
     AddSectionDivider(Right1, "🌟 TIẾN TRÌNH AUTO KAITUN (1 - 2550)")
-    AddCheckbox(Right1, "⚡ BẬT AUTO KAITUN PRO (1 - 2550)", CPHub.Config.AutoKaitun, function(v)
-        CPHub.Config.AutoKaitun = v
+    AddCheckbox(Right1, "⚡ BẬT AUTO KAITUN PRO (1 - 2550)", LurnaHub.Config.AutoKaitun, function(v)
+        LurnaHub.Config.AutoKaitun = v
         MasterConfigModule.Save()
-        CPHub:Debug("SUCCESS", "Trạng thái Auto Kaitun Pro: " .. tostring(v))
+        LurnaHub:Debug("SUCCESS", "Trạng thái Auto Kaitun Pro: " .. tostring(v))
     end)
-    AddListPickerModal(Right1, "Kaitun Stats Build Preset", {"Balanced (Melee + Defense + Sword)", "Fruit Main", "Sword Main"}, CPHub.Config.KaitunStatPreset, function(v)
-        CPHub.Config.KaitunStatPreset = v
+    AddListPickerModal(Right1, "Kaitun Stats Build Preset", {"Balanced (Melee + Defense + Sword)", "Fruit Main", "Sword Main"}, LurnaHub.Config.KaitunStatPreset, function(v)
+        LurnaHub.Config.KaitunStatPreset = v
         MasterConfigModule.Save()
     end)
-    AddCheckbox(Right1, "Tự Động Phân Bổ Điểm Stats", CPHub.Config.KaitunAutoStats, function(v) CPHub.Config.KaitunAutoStats = v; MasterConfigModule.Save() end)
-    AddCheckbox(Right1, "Tự Động Mở Sea (Sea 1 -> 2 & 2 -> 3)", CPHub.Config.KaitunAutoNextSea, function(v) CPHub.Config.KaitunAutoNextSea = v; MasterConfigModule.Save() end)
-    AddCheckbox(Right1, "Tự Động Giải Đố Saber Quest (Lv 200+)", CPHub.Config.KaitunAutoSaber, function(v) CPHub.Config.KaitunAutoSaber = v; MasterConfigModule.Save() end)
-    AddCheckbox(Right1, "Tự Động Làm Bartilo Quest (Lv 850+)", CPHub.Config.KaitunAutoBartilo, function(v) CPHub.Config.KaitunAutoBartilo = v; MasterConfigModule.Save() end)
-    AddCheckbox(Right1, "Tự Động Nâng Cấp Tộc V2 (Hoa V2)", CPHub.Config.KaitunAutoRaceV2, function(v) CPHub.Config.KaitunAutoRaceV2 = v; MasterConfigModule.Save() end)
-    AddCheckbox(Right1, "Tự Động Mua Võ & Nâng Cấp Võ V2", CPHub.Config.KaitunAutoBuyFightingStyles, function(v) CPHub.Config.KaitunAutoBuyFightingStyles = v; MasterConfigModule.Save() end)
-    AddCheckbox(Right1, "Tự Động Thu Gom Rương Tích Beli", CPHub.Config.KaitunAutoCollectChests, function(v) CPHub.Config.KaitunAutoCollectChests = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Phân Bổ Điểm Stats", LurnaHub.Config.KaitunAutoStats, function(v) LurnaHub.Config.KaitunAutoStats = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Mở Sea (Sea 1 -> 2 & 2 -> 3)", LurnaHub.Config.KaitunAutoNextSea, function(v) LurnaHub.Config.KaitunAutoNextSea = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Giải Đố Saber Quest (Lv 200+)", LurnaHub.Config.KaitunAutoSaber, function(v) LurnaHub.Config.KaitunAutoSaber = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Làm Bartilo Quest (Lv 850+)", LurnaHub.Config.KaitunAutoBartilo, function(v) LurnaHub.Config.KaitunAutoBartilo = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Nâng Cấp Tộc V2 (Hoa V2)", LurnaHub.Config.KaitunAutoRaceV2, function(v) LurnaHub.Config.KaitunAutoRaceV2 = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Mua Võ & Nâng Cấp Võ V2", LurnaHub.Config.KaitunAutoBuyFightingStyles, function(v) LurnaHub.Config.KaitunAutoBuyFightingStyles = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right1, "Tự Động Thu Gom Rương Tích Beli", LurnaHub.Config.KaitunAutoCollectChests, function(v) LurnaHub.Config.KaitunAutoCollectChests = v; MasterConfigModule.Save() end)
 
     -- ============================================================================
     -- TAB 2: ⚔️ MAIN FARM & COMBAT CONTROLS
@@ -6078,82 +6171,82 @@ local function CreateNativeUI()
 
     -- Left Column: ⚔️ FARM LEVEL & NHIỆM VỤ THỦ CÔNG
     AddSectionDivider(Left2, "⚔️ FARM LEVEL & NHIỆM VỤ THỦ CÔNG")
-    AddCheckbox(Left2, "⚡ BẬT AUTO FARM LEVEL", CPHub.Config.AutoFarm, function(v)
-        CPHub.Config.AutoFarm = v
+    AddCheckbox(Left2, "⚡ BẬT AUTO FARM LEVEL", LurnaHub.Config.AutoFarm, function(v)
+        LurnaHub.Config.AutoFarm = v
         MasterConfigModule.Save()
     end)
-    AddListPickerModal(Left2, "Chọn Chế Độ Farm Quái", {"Level & Quest (Auto Level)", "Farm Bones (Haunted Castle)", "Cake Prince / Dough King", "Kitsune Azure Embers", "Quái Gần Nhất"}, CPHub.Config.SelectFarmMode, function(v)
-        CPHub.Config.SelectFarmMode = v
+    AddListPickerModal(Left2, "Chọn Chế Độ Farm Quái", {"Level & Quest (Auto Level)", "Farm Bones (Haunted Castle)", "Cake Prince / Dough King", "Kitsune Azure Embers", "Quái Gần Nhất"}, LurnaHub.Config.SelectFarmMode, function(v)
+        LurnaHub.Config.SelectFarmMode = v
         MasterConfigModule.Save()
     end)
-    AddListPickerModal(Left2, "Chọn Vũ Khí Tấn Công", {"Melee", "Sword", "Blox Fruit", "Gun"}, CPHub.Config.SelectWeapon, function(v)
-        CPHub.Config.SelectWeapon = v
+    AddListPickerModal(Left2, "Chọn Vũ Khí Tấn Công", {"Melee", "Sword", "Blox Fruit", "Gun"}, LurnaHub.Config.SelectWeapon, function(v)
+        LurnaHub.Config.SelectWeapon = v
         MasterConfigModule.Save()
     end)
-    AddCreamButton(Left2, "🔄 Làm Mới Danh Sách Vũ Khí", function() CPHub:Debug("INFO", "Refreshed Weapon List") end)
-    AddCheckbox(Left2, "Fast Attack V4 Siêu Tốc (0 Delay)", CPHub.Config.FastAttack, function(v)
-        CPHub.Config.FastAttack = v
+    AddCreamButton(Left2, "🔄 Làm Mới Danh Sách Vũ Khí", function() LurnaHub:Debug("INFO", "Refreshed Weapon List") end)
+    AddCheckbox(Left2, "Fast Attack V4 Siêu Tốc (0 Delay)", LurnaHub.Config.FastAttack, function(v)
+        LurnaHub.Config.FastAttack = v
         MasterConfigModule.Save()
     end)
-    AddCheckbox(Left2, "Tự Động Gom Quái (Mob Bring)", CPHub.Config.MobBring, function(v)
-        CPHub.Config.MobBring = v
+    AddCheckbox(Left2, "Tự Động Gom Quái (Mob Bring)", LurnaHub.Config.MobBring, function(v)
+        LurnaHub.Config.MobBring = v
         MasterConfigModule.Save()
     end)
     AddSlider(Left2, "Bán Kính Gom Quái (Mob Bring Radius)", 100, 500, 350, "studs", function(v)
-        CPHub.Config.MobBringRadius = v
+        LurnaHub.Config.MobBringRadius = v
         MasterConfigModule.Save()
     end)
     AddSlider(Left2, "Tốc Độ Tấn Công Fast Attack", 5, 50, 15, " ms", function(v)
-        CPHub.Config.FastAttackSpeed = v / 1000
+        LurnaHub.Config.FastAttackSpeed = v / 1000
     end)
-    AddCheckbox(Left2, "Gom Quái Lại Gần (Mob Bring)", CPHub.Config.MobBring, function(v)
-        CPHub.Config.MobBring = v
+    AddCheckbox(Left2, "Gom Quái Lại Gần (Mob Bring)", LurnaHub.Config.MobBring, function(v)
+        LurnaHub.Config.MobBring = v
     end)
     AddSlider(Left2, "Bán Kính Gom Quái", 100, 450, 350, " studs", function(v)
-        CPHub.Config.MobBringRadius = v
+        LurnaHub.Config.MobBringRadius = v
     end)
     AddSlider(Left2, "Khoảng Cách Đứng Đánh An Toàn", 10, 60, 20, " studs", function(v)
-        CPHub.Config.AttackReach = v
+        LurnaHub.Config.AttackReach = v
     end)
 
     -- Right Column: 🛡️ HAKI & TIỆN ÍCH CHIẾN ĐẤU
     AddSectionDivider(Right2, "🛡️ HAKI & TIỆN ÍCH CHIẾN ĐẤU")
-    AddCheckbox(Right2, "Tự Bật Buso Haki (Vũ Trang)", CPHub.Config.AutoBuso, function(v) CPHub.Config.AutoBuso = v; MasterConfigModule.Save() end)
-    AddCheckbox(Right2, "Tự Bật Ken Haki (Quan Sát)", CPHub.Config.AutoKen, function(v) CPHub.Config.AutoKen = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right2, "Tự Bật Buso Haki (Vũ Trang)", LurnaHub.Config.AutoBuso, function(v) LurnaHub.Config.AutoBuso = v; MasterConfigModule.Save() end)
+    AddCheckbox(Right2, "Tự Bật Ken Haki (Quan Sát)", LurnaHub.Config.AutoKen, function(v) LurnaHub.Config.AutoKen = v; MasterConfigModule.Save() end)
     AddCheckbox(Right2, "Bypass Dịch Chuyển (Safe Tween TP)", true, function() end)
     AddCheckbox(Right2, "Anti AFK (Chống Văng Game)", true, function() end)
 
     AddSectionDivider(Right2, "⚔️ AUTO BOUNTY GẦN KHI FARM (M1 BYPASS)")
-    AddCheckbox(Right2, "Săn Người Chơi Gần (Đủ Cấp Nhận Bounty)", CPHub.Config.AutoBountyNearPlayer, function(v)
-        CPHub.Config.AutoBountyNearPlayer = v
+    AddCheckbox(Right2, "Săn Người Chơi Gần (Đủ Cấp Nhận Bounty)", LurnaHub.Config.AutoBountyNearPlayer, function(v)
+        LurnaHub.Config.AutoBountyNearPlayer = v
         MasterConfigModule.Save()
     end)
-    AddSlider(Right2, "Bán Kính Quét Người Chơi Bounty", 100, 500, tonumber(CPHub.Config.BountyDetectRadius) or 250, " studs", function(v)
-        CPHub.Config.BountyDetectRadius = v
+    AddSlider(Right2, "Bán Kính Quét Người Chơi Bounty", 100, 500, tonumber(LurnaHub.Config.BountyDetectRadius) or 250, " studs", function(v)
+        LurnaHub.Config.BountyDetectRadius = v
         MasterConfigModule.Save()
     end)
-    AddCheckbox(Right2, "Tự Xoay Vòng Skill Combo (Bypass M1)", CPHub.Config.BountyBypassSkillRotation, function(v)
-        CPHub.Config.BountyBypassSkillRotation = v
+    AddCheckbox(Right2, "Tự Xoay Vòng Skill Combo (Bypass M1)", LurnaHub.Config.BountyBypassSkillRotation, function(v)
+        LurnaHub.Config.BountyBypassSkillRotation = v
         MasterConfigModule.Save()
     end)
-    AddCheckbox(Right2, "🛡️ Máu < 25% Tự Bay Lên 2500m Né Mất Bounty", CPHub.Config.AutoEscapeLowHP, function(v)
-        CPHub.Config.AutoEscapeLowHP = v
+    AddCheckbox(Right2, "🛡️ Máu < 25% Tự Bay Lên 2500m Né Mất Bounty", LurnaHub.Config.AutoEscapeLowHP, function(v)
+        LurnaHub.Config.AutoEscapeLowHP = v
         MasterConfigModule.Save()
     end)
-    AddCheckbox(Right2, "🔄 Tự Reset Sau Khi Bay Cao (Hồi 100% HP)", CPHub.Config.AutoResetLowHP, function(v)
-        CPHub.Config.AutoResetLowHP = v
+    AddCheckbox(Right2, "🔄 Tự Reset Sau Khi Bay Cao (Hồi 100% HP)", LurnaHub.Config.AutoResetLowHP, function(v)
+        LurnaHub.Config.AutoResetLowHP = v
         MasterConfigModule.Save()
     end)
 
     AddSectionDivider(Right2, "🎯 FARM MASTERY & SKILL SPAMMER")
-    AddCheckbox(Right2, "Khóa Điểm Farm Mastery Vũ Khí", CPHub.Config.StartLockMastery, function(v) CPHub.Config.StartLockMastery = v end)
-    AddListPickerModal(Right2, "Chọn Vũ Khí Khóa Mastery", {"Melee", "Sword", "Blox Fruit", "Gun"}, CPHub.Config.SelectWeaponLockMastery, function(v) CPHub.Config.SelectWeaponLockMastery = v end)
-    AddSlider(Right2, "Mục Tiêu Điểm Mastery", 100, 600, 600, " Mastery", function(v) CPHub.Config.SelectLockMastery = v end)
+    AddCheckbox(Right2, "Khóa Điểm Farm Mastery Vũ Khí", LurnaHub.Config.StartLockMastery, function(v) LurnaHub.Config.StartLockMastery = v end)
+    AddListPickerModal(Right2, "Chọn Vũ Khí Khóa Mastery", {"Melee", "Sword", "Blox Fruit", "Gun"}, LurnaHub.Config.SelectWeaponLockMastery, function(v) LurnaHub.Config.SelectWeaponLockMastery = v end)
+    AddSlider(Right2, "Mục Tiêu Điểm Mastery", 100, 600, 600, " Mastery", function(v) LurnaHub.Config.SelectLockMastery = v end)
     AddCheckbox(Right2, "Spam Đòn Thường (Click)", true, function() end)
-    AddCheckbox(Right2, "Tự Dùng Chiêu Z", CPHub.Config.SkillSpamZ, function(v) CPHub.Config.SkillSpamZ = v end)
-    AddCheckbox(Right2, "Tự Dùng Chiêu X", CPHub.Config.SkillSpamX, function(v) CPHub.Config.SkillSpamX = v end)
-    AddCheckbox(Right2, "Tự Dùng Chiêu C", CPHub.Config.SkillSpamC, function(v) CPHub.Config.SkillSpamC = v end)
-    AddCheckbox(Right2, "Tự Dùng Chiêu V", CPHub.Config.SkillSpamV, function(v) CPHub.Config.SkillSpamV = v end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu Z", LurnaHub.Config.SkillSpamZ, function(v) LurnaHub.Config.SkillSpamZ = v end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu X", LurnaHub.Config.SkillSpamX, function(v) LurnaHub.Config.SkillSpamX = v end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu C", LurnaHub.Config.SkillSpamC, function(v) LurnaHub.Config.SkillSpamC = v end)
+    AddCheckbox(Right2, "Tự Dùng Chiêu V", LurnaHub.Config.SkillSpamV, function(v) LurnaHub.Config.SkillSpamV = v end)
 
     -- Populating All Remaining 12 Feature Tabs (3 to 14)
     for i = 3, 14 do
@@ -6163,20 +6256,20 @@ local function CreateNativeUI()
 
         if i == 3 then
             AddSectionDivider(lCol, "Auto Chest Collector")
-            AddCheckbox(lCol, "Auto Farm Chests (Beli)", CPHub.Config.AutoChest, function(v) CPHub.Config.AutoChest = v end)
-            AddSlider(lCol, "Select Chest Fly Speed", 100, 400, 300, " studs/s", function(v) CPHub.Config.TweenSpeed = v end)
+            AddCheckbox(lCol, "Auto Farm Chests (Beli)", LurnaHub.Config.AutoChest, function(v) LurnaHub.Config.AutoChest = v end)
+            AddSlider(lCol, "Select Chest Fly Speed", 100, 400, 300, " studs/s", function(v) LurnaHub.Config.TweenSpeed = v end)
             AddCheckbox(lCol, "Bypass TP Chests", true, function() end)
 
             AddSectionDivider(rCol, "Auto Material Collector")
-            AddCheckbox(rCol, "Auto Farm Material", CPHub.Config.AutoFarmMaterial, function(v) CPHub.Config.AutoFarmMaterial = v end)
-            AddListPickerModal(rCol, "Select Target Material", {"Bones", "Angel Wings", "Vampire Fang", "Conjured Cocoa", "Magma Ore", "Fish Tail", "Dragon Scale", "Ectoplasm", "Demonic Soul"}, "Bones", function(v) CPHub.Config.SelectMaterial = v end)
+            AddCheckbox(rCol, "Auto Farm Material", LurnaHub.Config.AutoFarmMaterial, function(v) LurnaHub.Config.AutoFarmMaterial = v end)
+            AddListPickerModal(rCol, "Select Target Material", {"Bones", "Angel Wings", "Vampire Fang", "Conjured Cocoa", "Magma Ore", "Fish Tail", "Dragon Scale", "Ectoplasm", "Demonic Soul"}, "Bones", function(v) LurnaHub.Config.SelectMaterial = v end)
             AddCreamButton(rCol, "Refresh Materials List", function() end)
 
         elseif i == 4 then
             AddSectionDivider(lCol, "Boss Farm Selector")
-            AddCheckbox(lCol, "Auto Farm Select Boss", CPHub.Config.AutoFarmBoss, function(v) CPHub.Config.AutoFarmBoss = v end)
-            AddListPickerModal(lCol, "Select Target Boss", {"Diamond", "Jeremy", "Fajita", "Smoke Admiral", "Awakened Ice Admiral", "Tide Keeper", "Stone", "Island Empress", "Kilo Admiral", "Captain Elephant", "Beautiful Pirate", "Soul Reaper", "Cake Queen"}, "Cake Queen", function(v) CPHub.Config.SelectBoss = v end)
-            AddCheckbox(lCol, "Auto Hop Search Boss", CPHub.Config.AutoHopBoss, function(v) CPHub.Config.AutoHopBoss = v end)
+            AddCheckbox(lCol, "Auto Farm Select Boss", LurnaHub.Config.AutoFarmBoss, function(v) LurnaHub.Config.AutoFarmBoss = v end)
+            AddListPickerModal(lCol, "Select Target Boss", {"Diamond", "Jeremy", "Fajita", "Smoke Admiral", "Awakened Ice Admiral", "Tide Keeper", "Stone", "Island Empress", "Kilo Admiral", "Captain Elephant", "Beautiful Pirate", "Soul Reaper", "Cake Queen"}, "Cake Queen", function(v) LurnaHub.Config.SelectBoss = v end)
+            AddCheckbox(lCol, "Auto Hop Search Boss", LurnaHub.Config.AutoHopBoss, function(v) LurnaHub.Config.AutoHopBoss = v end)
 
             AddSectionDivider(rCol, "Boss Combat Options")
             AddCheckbox(rCol, "Fast Boss Kill Mode", true, function() end)
@@ -6186,34 +6279,34 @@ local function CreateNativeUI()
         elseif i == 5 then
             AddSectionDivider(lCol, "Weapon Quests Solver")
             AddCreamButton(lCol, "Auto Obtain Cursed Dual Katana (CDK)", function()
-                CPHub.Config.AutoObtainCDK = not CPHub.Config.AutoObtainCDK
-                CPHub:Debug("INFO", "CDK Solver Status: " .. tostring(CPHub.Config.AutoObtainCDK))
+                LurnaHub.Config.AutoObtainCDK = not LurnaHub.Config.AutoObtainCDK
+                LurnaHub:Debug("INFO", "CDK Solver Status: " .. tostring(LurnaHub.Config.AutoObtainCDK))
             end)
             AddCreamButton(lCol, "Auto Obtain Soul Guitar Quest", function()
-                CPHub.Config.AutoObtainSoulGuitar = not CPHub.Config.AutoObtainSoulGuitar
-                CPHub:Debug("INFO", "Soul Guitar Solver Status: " .. tostring(CPHub.Config.AutoObtainSoulGuitar))
+                LurnaHub.Config.AutoObtainSoulGuitar = not LurnaHub.Config.AutoObtainSoulGuitar
+                LurnaHub:Debug("INFO", "Soul Guitar Solver Status: " .. tostring(LurnaHub.Config.AutoObtainSoulGuitar))
             end)
             AddCreamButton(lCol, "Auto Obtain True Triple Katana (TTK)", function()
-                CPHub.Config.AutoObtainTTK = not CPHub.Config.AutoObtainTTK
-                CPHub:Debug("INFO", "TTK Solver Status: " .. tostring(CPHub.Config.AutoObtainTTK))
+                LurnaHub.Config.AutoObtainTTK = not LurnaHub.Config.AutoObtainTTK
+                LurnaHub:Debug("INFO", "TTK Solver Status: " .. tostring(LurnaHub.Config.AutoObtainTTK))
             end)
             AddCreamButton(lCol, "Auto Obtain Shark Anchor Quest", function()
-                CPHub.Config.AutoObtainSharkAnchor = not CPHub.Config.AutoObtainSharkAnchor
-                CPHub:Debug("INFO", "Shark Anchor Solver Status: " .. tostring(CPHub.Config.AutoObtainSharkAnchor))
+                LurnaHub.Config.AutoObtainSharkAnchor = not LurnaHub.Config.AutoObtainSharkAnchor
+                LurnaHub:Debug("INFO", "Shark Anchor Solver Status: " .. tostring(LurnaHub.Config.AutoObtainSharkAnchor))
             end)
 
             local selectedShopSword = "Katana"
             AddSectionDivider(lCol, "Swords Dealer Shop")
             AddListPickerModal(lCol, "Select Sword to Buy", {"Katana", "Cutlass", "Dual Katana", "Iron Mace", "Triple Katana", "Pipe", "Dual-Headed Blade", "Soul Cane", "Bisento"}, "Katana", function(v) selectedShopSword = v end)
             AddCreamButton(lCol, "Buy Selected Sword", function()
-                CPHub:Debug("INFO", "Đang gửi yêu cầu mua Kiếm: " .. tostring(selectedShopSword))
+                LurnaHub:Debug("INFO", "Đang gửi yêu cầu mua Kiếm: " .. tostring(selectedShopSword))
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if commF then
                         local r1 = commF:InvokeServer("BuyItem", selectedShopSword)
                         local cleanName = tostring(selectedShopSword):gsub("%s+", "")
                         local r2 = commF:InvokeServer("Buy" .. cleanName)
-                        CPHub:Debug("SUCCESS", "Đã gửi Remote mua " .. tostring(selectedShopSword) .. " thành công!")
+                        LurnaHub:Debug("SUCCESS", "Đã gửi Remote mua " .. tostring(selectedShopSword) .. " thành công!")
                     end
                 end)
             end)
@@ -6222,77 +6315,77 @@ local function CreateNativeUI()
             AddSectionDivider(lCol, "Boats & Ships Dealer")
             AddListPickerModal(lCol, "Select Boat to Buy", {"Dinghy", "Sailboat", "Sloop", "Galleon", "Swan Ship", "Flower Ship", "Enforcer"}, "Dinghy", function(v) selectedShopBoat = v end)
             AddCreamButton(lCol, "Buy Selected Boat", function()
-                CPHub:Debug("INFO", "Đang gửi yêu cầu mua Thuyền: " .. tostring(selectedShopBoat))
+                LurnaHub:Debug("INFO", "Đang gửi yêu cầu mua Thuyền: " .. tostring(selectedShopBoat))
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if commF then
                         commF:InvokeServer("BuyBoat", selectedShopBoat)
-                        CPHub:Debug("SUCCESS", "Đã tạo Thuyền " .. tostring(selectedShopBoat) .. " tại bến!")
+                        LurnaHub:Debug("SUCCESS", "Đã tạo Thuyền " .. tostring(selectedShopBoat) .. " tại bến!")
                     end
                 end)
             end)
 
             AddSectionDivider(rCol, "Fighting Style Shop (All 11 Styles)")
             AddCreamButton(rCol, "Buy Godhuman Fighting Style (5M Beli + 5k Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Godhuman...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyGodhuman"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Godhuman!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Godhuman...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyGodhuman"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Godhuman!") end)
             end)
             AddCreamButton(rCol, "Buy Sanguine Art Fighting Style (5M Beli + 5k Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Sanguine Art...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuySanguineArt"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Sanguine Art!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Sanguine Art...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuySanguineArt"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Sanguine Art!") end)
             end)
             AddCreamButton(rCol, "Buy Dragon Talon Fighting Style (3M Beli + 5k Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Dragon Talon...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyDragonTalon"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Dragon Talon!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Dragon Talon...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyDragonTalon"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Dragon Talon!") end)
             end)
             AddCreamButton(rCol, "Buy Electric Claw Fighting Style (3M Beli + 5k Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Electric Claw...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyElectricClaw"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Electric Claw!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Electric Claw...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyElectricClaw"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Electric Claw!") end)
             end)
             AddCreamButton(rCol, "Buy Death Step Fighting Style (2.5M Beli + 5k Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Death Step...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyDeathStep"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Death Step!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Death Step...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyDeathStep"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Death Step!") end)
             end)
             AddCreamButton(rCol, "Buy Superhuman Fighting Style (3M Beli)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Superhuman...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuySuperhuman"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Superhuman!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Superhuman...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuySuperhuman"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Superhuman!") end)
             end)
             AddCreamButton(rCol, "Buy Sharkman Karate Fighting Style (2.5M Beli + 5k Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Sharkman Karate...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuySharkmanKarate"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Sharkman Karate!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Sharkman Karate...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuySharkmanKarate"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Sharkman Karate!") end)
             end)
             AddCreamButton(rCol, "Buy Black Leg Fighting Style (150k Beli)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Black Leg...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyBlackLeg"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Black Leg!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Black Leg...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyBlackLeg"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Black Leg!") end)
             end)
             AddCreamButton(rCol, "Buy Electro Fighting Style (500k Beli)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Electro...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyElectro"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Electro!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Electro...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyElectro"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Electro!") end)
             end)
             AddCreamButton(rCol, "Buy Fishman Karate Fighting Style (750k Beli)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Fishman Karate...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyFishmanKarate"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Fishman Karate!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Fishman Karate...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyFishmanKarate"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Fishman Karate!") end)
             end)
             AddCreamButton(rCol, "Buy Dragon Claw Fighting Style (1,500 Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu mua Võ Dragon Claw...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "1"); CPHub:Debug("SUCCESS", "Đã gọi Remote mua Dragon Claw!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu mua Võ Dragon Claw...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "1"); LurnaHub:Debug("SUCCESS", "Đã gọi Remote mua Dragon Claw!") end)
             end)
 
             AddSectionDivider(rCol, "Utility & Consumables Shop")
             AddCreamButton(rCol, "Reset Points / Stat Refund (2,500 Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu Reset Stat Refund...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "Refund", "1"); CPHub:Debug("SUCCESS", "Đã Tẩy Điểm Stat!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu Reset Stat Refund...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "Refund", "1"); LurnaHub:Debug("SUCCESS", "Đã Tẩy Điểm Stat!") end)
             end)
             AddCreamButton(rCol, "Reroll Race (3,000 Frags)", function()
-                CPHub:Debug("INFO", "Gửi yêu cầu Reroll Tộc...")
-                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "Reroll", "1"); CPHub:Debug("SUCCESS", "Đã Đổi Tộc Ngẫu Nhiên!") end)
+                LurnaHub:Debug("INFO", "Gửi yêu cầu Reroll Tộc...")
+                pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "Reroll", "1"); LurnaHub:Debug("SUCCESS", "Đã Đổi Tộc Ngẫu Nhiên!") end)
             end)
 
         elseif i == 6 then
             AddSectionDivider(lCol, "Auto Raid Engine")
-            AddCheckbox(lCol, "Auto Clear Raid Dungeon", CPHub.Config.AutoRaid, function(v) CPHub.Config.AutoRaid = v end)
-            AddListPickerModal(lCol, "Select Microchip Raid", {"Flame", "Ice", "Quake", "Light", "Dark", "Spider", "Rumble", "Magma", "Buddha", "Dough"}, "Dough", function(v) CPHub.Config.SelectRaidChip = v end)
-            AddCreamButton(lCol, "Buy Microchip Ticket", function() pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyRaidsChip", CPHub.Config.SelectRaidChip or "Dough") end) end)
+            AddCheckbox(lCol, "Auto Clear Raid Dungeon", LurnaHub.Config.AutoRaid, function(v) LurnaHub.Config.AutoRaid = v end)
+            AddListPickerModal(lCol, "Select Microchip Raid", {"Flame", "Ice", "Quake", "Light", "Dark", "Spider", "Rumble", "Magma", "Buddha", "Dough"}, "Dough", function(v) LurnaHub.Config.SelectRaidChip = v end)
+            AddCreamButton(lCol, "Buy Microchip Ticket", function() pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("BuyRaidsChip", LurnaHub.Config.SelectRaidChip or "Dough") end) end)
 
             AddSectionDivider(rCol, "Fruit Skill Awakening")
             AddCheckbox(rCol, "Auto Awaken Skill Z", true, function() pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("Awaken") end) end)
@@ -6303,68 +6396,68 @@ local function CreateNativeUI()
 
         elseif i == 7 then
             AddSectionDivider(lCol, "World & Sea Events Engine")
-            AddCheckbox(lCol, "Auto Factory Raid (Sea 2)", CPHub.Config.AutoFactory, function(v) CPHub.Config.AutoFactory = v end)
-            AddCheckbox(lCol, "Auto Pirate Raid Castle (Sea 3)", CPHub.Config.AutoPirateRaid, function(v) CPHub.Config.AutoPirateRaid = v end)
-            AddCheckbox(lCol, "Auto Hunt Sea Beast", CPHub.Config.AutoSeaBeast, function(v) CPHub.Config.AutoSeaBeast = v end)
-            AddCheckbox(lCol, "Auto Hunt Terror Shark", CPHub.Config.AutoTerrorShark, function(v) CPHub.Config.AutoTerrorShark = v end)
-            AddCheckbox(lCol, "Auto Hunt Piranha", CPHub.Config.AutoPiranha, function(v) CPHub.Config.AutoPiranha = v end)
-            AddCheckbox(lCol, "Auto Hunt Ghost Ship", CPHub.Config.AutoShipCrew, function(v) CPHub.Config.AutoShipCrew = v end)
+            AddCheckbox(lCol, "Auto Factory Raid (Sea 2)", LurnaHub.Config.AutoFactory, function(v) LurnaHub.Config.AutoFactory = v end)
+            AddCheckbox(lCol, "Auto Pirate Raid Castle (Sea 3)", LurnaHub.Config.AutoPirateRaid, function(v) LurnaHub.Config.AutoPirateRaid = v end)
+            AddCheckbox(lCol, "Auto Hunt Sea Beast", LurnaHub.Config.AutoSeaBeast, function(v) LurnaHub.Config.AutoSeaBeast = v end)
+            AddCheckbox(lCol, "Auto Hunt Terror Shark", LurnaHub.Config.AutoTerrorShark, function(v) LurnaHub.Config.AutoTerrorShark = v end)
+            AddCheckbox(lCol, "Auto Hunt Piranha", LurnaHub.Config.AutoPiranha, function(v) LurnaHub.Config.AutoPiranha = v end)
+            AddCheckbox(lCol, "Auto Hunt Ghost Ship", LurnaHub.Config.AutoShipCrew, function(v) LurnaHub.Config.AutoShipCrew = v end)
 
             AddSectionDivider(rCol, "Special Sea Event Solvers (Kitsune & Leviathan)")
-            AddCheckbox(rCol, "🦊 Auto Kitsune Island & Embers", CPHub.Config.AutoKitsuneEvent, function(v) CPHub.Config.AutoKitsuneEvent = v; MasterConfigModule.Save() end)
-            AddCheckbox(rCol, "Auto Đổi 25 Embers Tại Đền Kitsune", CPHub.Config.AutoTradeKitsuneShrine, function(v) CPHub.Config.AutoTradeKitsuneShrine = v; MasterConfigModule.Save() end)
-            AddCheckbox(rCol, "🐉 Auto Săn Leviathan & Bắn Tim", CPHub.Config.AutoLeviathanHunter, function(v) CPHub.Config.AutoLeviathanHunter = v; MasterConfigModule.Save() end)
-            AddCheckbox(rCol, "Auto Hối Lộ Điệp Viên Tiki Spy", CPHub.Config.AutoBriberySpy, function(v) CPHub.Config.AutoBriberySpy = v; MasterConfigModule.Save() end)
+            AddCheckbox(rCol, "🦊 Auto Kitsune Island & Embers", LurnaHub.Config.AutoKitsuneEvent, function(v) LurnaHub.Config.AutoKitsuneEvent = v; MasterConfigModule.Save() end)
+            AddCheckbox(rCol, "Auto Đổi 25 Embers Tại Đền Kitsune", LurnaHub.Config.AutoTradeKitsuneShrine, function(v) LurnaHub.Config.AutoTradeKitsuneShrine = v; MasterConfigModule.Save() end)
+            AddCheckbox(rCol, "🐉 Auto Săn Leviathan & Bắn Tim", LurnaHub.Config.AutoLeviathanHunter, function(v) LurnaHub.Config.AutoLeviathanHunter = v; MasterConfigModule.Save() end)
+            AddCheckbox(rCol, "Auto Hối Lộ Điệp Viên Tiki Spy", LurnaHub.Config.AutoBriberySpy, function(v) LurnaHub.Config.AutoBriberySpy = v; MasterConfigModule.Save() end)
             AddCreamButton(rCol, "Auto Định Hướng Trăng Tròn Mirage", function()
-                CPHub.Config.AutoFindMirage = not CPHub.Config.AutoFindMirage
-                CPHub:Debug("INFO", "Mirage Moon Alignment Status: " .. tostring(CPHub.Config.AutoFindMirage))
+                LurnaHub.Config.AutoFindMirage = not LurnaHub.Config.AutoFindMirage
+                LurnaHub:Debug("INFO", "Mirage Moon Alignment Status: " .. tostring(LurnaHub.Config.AutoFindMirage))
             end)
 
         elseif i == 8 then
             AddSectionDivider(lCol, "Race V1 - V4 Upgrade")
             AddCreamButton(lCol, "Auto Find Flowers V2 (Red/Blue/Yellow)", function()
-                CPHub.Config.AutoFlowerV2 = not CPHub.Config.AutoFlowerV2
-                CPHub:Debug("INFO", "Race V2 Flower Quest Status: " .. tostring(CPHub.Config.AutoFlowerV2))
+                LurnaHub.Config.AutoFlowerV2 = not LurnaHub.Config.AutoFlowerV2
+                LurnaHub:Debug("INFO", "Race V2 Flower Quest Status: " .. tostring(LurnaHub.Config.AutoFlowerV2))
             end)
             AddCreamButton(lCol, "Auto Complete Race V3 Quest", function()
-                CPHub.Config.AutoRaceV3 = not CPHub.Config.AutoRaceV3
-                CPHub:Debug("INFO", "Race V3 Quest Status: " .. tostring(CPHub.Config.AutoRaceV3))
+                LurnaHub.Config.AutoRaceV3 = not LurnaHub.Config.AutoRaceV3
+                LurnaHub:Debug("INFO", "Race V3 Quest Status: " .. tostring(LurnaHub.Config.AutoRaceV3))
             end)
             AddCreamButton(lCol, "Auto Pull Mirage Lever", function()
-                CPHub.Config.AutoPullLever = not CPHub.Config.AutoPullLever
-                CPHub:Debug("INFO", "Mirage Lever Puller Status: " .. tostring(CPHub.Config.AutoPullLever))
+                LurnaHub.Config.AutoPullLever = not LurnaHub.Config.AutoPullLever
+                LurnaHub:Debug("INFO", "Mirage Lever Puller Status: " .. tostring(LurnaHub.Config.AutoPullLever))
             end)
 
             AddSectionDivider(rCol, "Race V4 Temple Trials")
             AddCreamButton(rCol, "Teleport Temple of Time", function() SmoothTweenTo(CFrame.new(28282.5, 14896.8, 105.1)) end)
             AddCreamButton(rCol, "Auto Solve Ancient One Trial", function()
-                CPHub.Config.AutoCompleteTrial = not CPHub.Config.AutoCompleteTrial
-                CPHub:Debug("INFO", "Ancient One Trial Status: " .. tostring(CPHub.Config.AutoCompleteTrial))
+                LurnaHub.Config.AutoCompleteTrial = not LurnaHub.Config.AutoCompleteTrial
+                LurnaHub:Debug("INFO", "Ancient One Trial Status: " .. tostring(LurnaHub.Config.AutoCompleteTrial))
             end)
             AddCreamButton(rCol, "Auto Transform Race V4", function()
                 pcall(function()
                     local char = LocalPlayer.Character
                     if char and char:FindFirstChild("RaceEnergy") then
-                        ReplicatedStorage.Remotes.CommF_:InvokeServer("RaceV4Progress", "Transform")
+                        pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("RaceV4Progress", "Transform") end)
                     end
                 end)
             end)
 
         elseif i == 9 then
             AddSectionDivider(lCol, "Devil Fruit Gacha & Store")
-            AddCheckbox(lCol, "Auto Random Spin Fruit (Tự Động Random)", CPHub.Config.AutoSpinFruit, function(v) CPHub.Config.AutoSpinFruit = v end)
+            AddCheckbox(lCol, "Auto Random Spin Fruit (Tự Động Random)", LurnaHub.Config.AutoSpinFruit, function(v) LurnaHub.Config.AutoSpinFruit = v end)
             AddCreamButton(lCol, "🎲 Random Spin Fruit Immediately (Random Ngay)", function()
                 pcall(function()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if commF then
                         local r1 = commF:InvokeServer("Cousin", "Buy")
                         local r2 = commF:InvokeServer("Gacha", "Buy")
-                        CPHub:Debug("SUCCESS", "Yeu cau Random Trai Ac Quy!")
+                        LurnaHub:Debug("SUCCESS", "Yeu cau Random Trai Ac Quy!")
                     end
                 end)
             end)
-            AddCheckbox(lCol, "Auto Store Fruit to Inventory", CPHub.Config.AutoStoreFruit, function(v) CPHub.Config.AutoStoreFruit = v end)
-            AddCheckbox(lCol, "Auto Snipe Fruit Dropped on Ground", CPHub.Config.AutoSnipeFruit, function(v) CPHub.Config.AutoSnipeFruit = v end)
+            AddCheckbox(lCol, "Auto Store Fruit to Inventory", LurnaHub.Config.AutoStoreFruit, function(v) LurnaHub.Config.AutoStoreFruit = v end)
+            AddCheckbox(lCol, "Auto Snipe Fruit Dropped on Ground", LurnaHub.Config.AutoSnipeFruit, function(v) LurnaHub.Config.AutoSnipeFruit = v end)
 
             local selectedDealerFruit = "Buddha"
             AddSectionDivider(rCol, "Fruit Dealer Shop")
@@ -6374,14 +6467,14 @@ local function CreateNativeUI()
                     local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                     if commF then
                         commF:InvokeServer("BuyFruit", selectedDealerFruit)
-                        CPHub:Debug("SUCCESS", "Yêu cầu mua Trái " .. selectedDealerFruit .. " từ Cửa hàng Dealer!")
+                        LurnaHub:Debug("SUCCESS", "Yêu cầu mua Trái " .. selectedDealerFruit .. " từ Cửa hàng Dealer!")
                     end
                 end)
             end)
 
         elseif i == 10 then
             AddSectionDivider(lCol, "Auto Fishing Engine")
-            AddCheckbox(lCol, "Auto Fishing Engine (Bật/Tắt)", CPHub.Config.AutoFishing, function(v) CPHub.Config.AutoFishing = v end)
+            AddCheckbox(lCol, "Auto Fishing Engine (Bật/Tắt)", LurnaHub.Config.AutoFishing, function(v) LurnaHub.Config.AutoFishing = v end)
             AddCheckbox(lCol, "Auto Cast Rod", true, function() end)
             AddCheckbox(lCol, "Auto Reel Catch Fish", true, function() end)
 
@@ -6392,9 +6485,9 @@ local function CreateNativeUI()
 
         elseif i == 11 then
             AddSectionDivider(lCol, "ESP Visual Wallhack")
-            AddCheckbox(lCol, "ESP Player Tracer & Box", CPHub.Config.ESPPlayer, function(v) CPHub.Config.ESPPlayer = v end)
-            AddCheckbox(lCol, "ESP Chest (Beli Chests)", CPHub.Config.ESPChest, function(v) CPHub.Config.ESPChest = v end)
-            AddCheckbox(lCol, "ESP Devil Fruit (Ground Fruits)", CPHub.Config.ESPFruit, function(v) CPHub.Config.ESPFruit = v end)
+            AddCheckbox(lCol, "ESP Player Tracer & Box", LurnaHub.Config.ESPPlayer, function(v) LurnaHub.Config.ESPPlayer = v end)
+            AddCheckbox(lCol, "ESP Chest (Beli Chests)", LurnaHub.Config.ESPChest, function(v) LurnaHub.Config.ESPChest = v end)
+            AddCheckbox(lCol, "ESP Devil Fruit (Ground Fruits)", LurnaHub.Config.ESPFruit, function(v) LurnaHub.Config.ESPFruit = v end)
 
             AddSectionDivider(rCol, "ESP Special Targets")
             AddCheckbox(rCol, "ESP Sea Beast", true, function() end)
@@ -6435,25 +6528,25 @@ local function CreateNativeUI()
 
         elseif i == 13 then
             AddSectionDivider(lCol, "Auto Stats Allocator")
-            AddCheckbox(lCol, "Auto Stat Melee (Cận Chiến)", CPHub.Config.AutoStatMelee, function(v) CPHub.Config.AutoStatMelee = v end)
-            AddCheckbox(lCol, "Auto Stat Defense (Máu / Giáp)", CPHub.Config.AutoStatDefense, function(v) CPHub.Config.AutoStatDefense = v end)
-            AddCheckbox(lCol, "Auto Stat Sword (Kiếm)", CPHub.Config.AutoStatSword, function(v) CPHub.Config.AutoStatSword = v end)
-            AddCheckbox(lCol, "Auto Stat Gun (Súng)", CPHub.Config.AutoStatGun, function(v) CPHub.Config.AutoStatGun = v end)
-            AddCheckbox(lCol, "Auto Stat Blox Fruit (Trái Ác Quỷ)", CPHub.Config.AutoStatFruit, function(v) CPHub.Config.AutoStatFruit = v end)
+            AddCheckbox(lCol, "Auto Stat Melee (Cận Chiến)", LurnaHub.Config.AutoStatMelee, function(v) LurnaHub.Config.AutoStatMelee = v end)
+            AddCheckbox(lCol, "Auto Stat Defense (Máu / Giáp)", LurnaHub.Config.AutoStatDefense, function(v) LurnaHub.Config.AutoStatDefense = v end)
+            AddCheckbox(lCol, "Auto Stat Sword (Kiếm)", LurnaHub.Config.AutoStatSword, function(v) LurnaHub.Config.AutoStatSword = v end)
+            AddCheckbox(lCol, "Auto Stat Gun (Súng)", LurnaHub.Config.AutoStatGun, function(v) LurnaHub.Config.AutoStatGun = v end)
+            AddCheckbox(lCol, "Auto Stat Blox Fruit (Trái Ác Quỷ)", LurnaHub.Config.AutoStatFruit, function(v) LurnaHub.Config.AutoStatFruit = v end)
 
             AddSectionDivider(rCol, "Stat Points Controls")
-            AddSlider(rCol, "Stat Point Step Per Click", 1, 100, 3, " pts", function(v) CPHub.Config.StatsPointStep = v end)
+            AddSlider(rCol, "Stat Point Step Per Click", 1, 100, 3, " pts", function(v) LurnaHub.Config.StatsPointStep = v end)
             AddCreamButton(rCol, "Add +10 Points Selected Stats", function()
                 pcall(function()
-                    if CPHub.Config.AutoStatMelee then ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Melee", 10) end
-                    if CPHub.Config.AutoStatDefense then ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Defense", 10) end
+                    if LurnaHub.Config.AutoStatMelee then ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Melee", 10) end
+                    if LurnaHub.Config.AutoStatDefense then ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Defense", 10) end
                 end)
             end)
             AddCreamButton(rCol, "Max Out All Available Points", function() end)
 
         elseif i == 14 then
             local function ExecuteServerHop(lowPlayerOnly)
-                CPHub:Debug("INFO", "Searching for target server instance...")
+                LurnaHub:Debug("INFO", "Searching for target server instance...")
                 pcall(function()
                     local reqUrl = "https://games.roblox.com/v1/games/" .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100"
                     local success, raw = pcall(function() return game:HttpGet(reqUrl) end)
@@ -6463,7 +6556,7 @@ local function CreateNativeUI()
                             for _, s in ipairs(parsed.data) do
                                 if s.id ~= game.JobId and s.playing < (s.maxPlayers or 12) then
                                     if not lowPlayerOnly or s.playing <= 4 then
-                                        CPHub:Debug("SUCCESS", "Teleporting to Server ID: " .. tostring(s.id) .. " (" .. tostring(s.playing) .. " players)")
+                                        LurnaHub:Debug("SUCCESS", "Teleporting to Server ID: " .. tostring(s.id) .. " (" .. tostring(s.playing) .. " players)")
                                         TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, LocalPlayer)
                                         return
                                     end
@@ -6471,21 +6564,21 @@ local function CreateNativeUI()
                             end
                         end
                     end
-                    CPHub:Debug("WARNING", "Fallback random server hop...")
+                    LurnaHub:Debug("WARNING", "Fallback random server hop...")
                     TeleportService:Teleport(game.PlaceId, LocalPlayer)
                 end)
             end
 
             AddSectionDivider(lCol, "Speed & Performance Config")
-            AddSlider(lCol, "Fly Tween Speed (Speed Fly)", 100, 400, tonumber(CPHub.Config.TweenSpeed) or 270, " studs/s", function(v) CPHub.Config.TweenSpeed = v end)
-            AddSlider(lCol, "Fast Attack Delay (Speed Attack)", 5, 100, 15, " ms", function(v) CPHub.Config.FastAttackSpeed = v / 1000 end)
-            AddSlider(lCol, "Attack Range Reach", 10, 100, 60, " studs", function(v) CPHub.Config.AttackReach = v end)
-            AddSlider(lCol, "Bring Mobs Radius", 50, 400, 250, " studs", function(v) CPHub.Config.BringMobRadius = v end)
+            AddSlider(lCol, "Fly Tween Speed (Speed Fly)", 100, 400, tonumber(LurnaHub.Config.TweenSpeed) or 270, " studs/s", function(v) LurnaHub.Config.TweenSpeed = v end)
+            AddSlider(lCol, "Fast Attack Delay (Speed Attack)", 5, 100, 15, " ms", function(v) LurnaHub.Config.FastAttackSpeed = v / 1000 end)
+            AddSlider(lCol, "Attack Range Reach", 10, 100, 60, " studs", function(v) LurnaHub.Config.AttackReach = v end)
+            AddSlider(lCol, "Bring Mobs Radius", 50, 400, 250, " studs", function(v) LurnaHub.Config.BringMobRadius = v end)
             AddCreamButton(lCol, "Rejoin Current Server", function() pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end) end)
 
             AddSectionDivider(lCol, "Discord Webhook Live Notifier")
-            AddCheckbox(lCol, "Bật Gửi Thông Báo Discord", CPHub.Config.WebhookEnabled, function(v) CPHub.Config.WebhookEnabled = v; MasterConfigModule.Save() end)
-            AddCheckbox(lCol, "Báo Cáo Tiến Độ AFK Hằng Giờ", CPHub.Config.WebhookHourlyReport, function(v) CPHub.Config.WebhookHourlyReport = v; MasterConfigModule.Save() end)
+            AddCheckbox(lCol, "Bật Gửi Thông Báo Discord", LurnaHub.Config.WebhookEnabled, function(v) LurnaHub.Config.WebhookEnabled = v; MasterConfigModule.Save() end)
+            AddCheckbox(lCol, "Báo Cáo Tiến Độ AFK Hằng Giờ", LurnaHub.Config.WebhookHourlyReport, function(v) LurnaHub.Config.WebhookHourlyReport = v; MasterConfigModule.Save() end)
             AddCreamButton(lCol, "🧪 Test Webhook (Gửi Thử Embed)", function()
                 MasterDiscordWebhookModule.SendEmbed(
                     "🔔 CP Hub - Kiểm Tra Webhook Thành Công",
@@ -6496,44 +6589,44 @@ local function CreateNativeUI()
                         { name = "Người Dùng", value = LocalPlayer.Name, inline = true }
                     }
                 )
-                CPHub:Debug("SUCCESS", "Đã gửi gói tin thử nghiệm tới Webhook!")
+                LurnaHub:Debug("SUCCESS", "Đã gửi gói tin thử nghiệm tới Webhook!")
             end)
 
             AddSectionDivider(lCol, "System Diagnostics & Logs")
-            AddCheckbox(lCol, "In Nhật Ký ra Console F9", CPHub.Config.LogToConsole, function(v) CPHub.Config.LogToConsole = v end)
+            AddCheckbox(lCol, "In Nhật Ký ra Console F9", LurnaHub.Config.LogToConsole, function(v) LurnaHub.Config.LogToConsole = v end)
             AddCreamButton(lCol, "🧹 Xóa Sạch Nhật Ký (Clear)", function()
-                CPHub.Logs = {}
-                if CPHub.ClearTerminalUI then CPHub.ClearTerminalUI() end
-                CPHub:Debug("INFO", "Nhật ký hệ thống đã được làm sạch!")
+                LurnaHub.Logs = {}
+                if LurnaHub.ClearTerminalUI then LurnaHub.ClearTerminalUI() end
+                LurnaHub:Debug("INFO", "Nhật ký hệ thống đã được làm sạch!")
             end)
             AddCreamButton(lCol, "📋 Sao Chép Nhật Ký (Copy)", function()
                 pcall(function()
                     if setclipboard then
-                        setclipboard(table.concat(CPHub.Logs, "\n"))
-                        CPHub:Debug("SUCCESS", "Đã sao chép toàn bộ nhật ký vào Clipboard!")
+                        setclipboard(table.concat(LurnaHub.Logs, "\n"))
+                        LurnaHub:Debug("SUCCESS", "Đã sao chép toàn bộ nhật ký vào Clipboard!")
                     end
                 end)
             end)
             AddCreamButton(lCol, "⚡ Kiểm Tra Hệ Thống (Self Test)", function()
-                CPHub:Debug("INFO", "=== ĐANG CHẠY TỰ KIỂM TRA HỆ THỐNG ===")
+                LurnaHub:Debug("INFO", "=== ĐANG CHẠY TỰ KIỂM TRA HỆ THỐNG ===")
                 local commF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
                 if commF then
-                    CPHub:Debug("SUCCESS", "✓ Kết nối Remote Function CommF_ OK!")
+                    LurnaHub:Debug("SUCCESS", "✓ Kết nối Remote Function CommF_ OK!")
                 else
-                    CPHub:Debug("ERROR", "✗ Không tìm thấy Remote Function CommF_!")
+                    LurnaHub:Debug("ERROR", "✗ Không tìm thấy Remote Function CommF_!")
                 end
                 if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    CPHub:Debug("SUCCESS", "✓ Nhân vật LocalPlayer & HumanoidRootPart OK!")
+                    LurnaHub:Debug("SUCCESS", "✓ Nhân vật LocalPlayer & HumanoidRootPart OK!")
                 else
-                    CPHub:Debug("WARN", "⚠ Nhân vật đang tải hoặc chưa sẵn sàng!")
+                    LurnaHub:Debug("WARN", "⚠ Nhân vật đang tải hoặc chưa sẵn sàng!")
                 end
-                CPHub:Debug("SUCCESS", "✓ Kiểm tra hoàn tất: Toàn bộ Module hoạt động ổn định!")
+                LurnaHub:Debug("SUCCESS", "✓ Kiểm tra hoàn tất: Toàn bộ Module hoạt động ổn định!")
             end)
-            AddCreamButton(lCol, "📊 Xuất File Dữ Liệu (CPHub_Dump.txt)", function()
+            AddCreamButton(lCol, "📊 Xuất File Dữ Liệu (LurnaHub_Dump.txt)", function()
                 pcall(function()
                     if writefile then
-                        writefile("CPHub_Dump.txt", table.concat(CPHub.Logs, "\n"))
-                        CPHub:Debug("SUCCESS", "Đã xuất dữ liệu ra tệp CPHub_Dump.txt!")
+                        writefile("LurnaHub_Dump.txt", table.concat(LurnaHub.Logs, "\n"))
+                        LurnaHub:Debug("SUCCESS", "Đã xuất dữ liệu ra tệp LurnaHub_Dump.txt!")
                     end
                 end)
             end)
@@ -6541,22 +6634,22 @@ local function CreateNativeUI()
             AddSectionDivider(lCol, "🌐 WEB DASHBOARD & REMOTE CONTROL")
             AddCreamButton(lCol, "📋 SAO CHÉP MÃ ID KẾT NỐI WEB", function()
                 pcall(function()
-                    local key = tostring(CPHub.PairingKey or CPHub.Config.PairingKey or "CP-DEMO")
+                    local key = tostring(LurnaHub.PairingKey or LurnaHub.Config.PairingKey or "LURNA-DEMO")
                     if setclipboard then
                         setclipboard(key)
-                        CPHub:Debug("SUCCESS", "Đã sao chép Mã ID Web: " .. key .. " vào Clipboard!")
+                        LurnaHub:Debug("SUCCESS", "Đã sao chép Mã ID Web: " .. key .. " vào Clipboard!")
                     else
-                        CPHub:Debug("INFO", "Mã ID Web của bạn là: " .. key)
+                        LurnaHub:Debug("INFO", "Mã ID Web của bạn là: " .. key)
                     end
                 end)
             end)
             AddCreamButton(lCol, "🔄 TẠO MÃ ID KẾT NỐI MỚI", function()
                 local shortId = string.sub(tostring(LocalPlayer.UserId), -4)
                 local randomCode = string.upper(string.sub(HttpService:GenerateGUID(false), 1, 4))
-                CPHub.Config.PairingKey = "CP-" .. shortId .. "-" .. randomCode
-                CPHub.PairingKey = CPHub.Config.PairingKey
+                LurnaHub.Config.PairingKey = "LURNA-" .. shortId .. "-" .. randomCode
+                LurnaHub.PairingKey = LurnaHub.Config.PairingKey
                 MasterConfigModule.Save()
-                CPHub:Debug("SUCCESS", "Đã tạo Mã ID Web mới: " .. tostring(CPHub.PairingKey))
+                LurnaHub:Debug("SUCCESS", "Đã tạo Mã ID Web mới: " .. tostring(LurnaHub.PairingKey))
             end)
 
             AddSectionDivider(rCol, "Server Hop & System Tools")
@@ -6573,7 +6666,7 @@ local function CreateNativeUI()
                     end
                 end)
             end)
-            AddCreamButton(rCol, "⛔ UNLOAD HUB / DELETE EVERYTHING", function() CPHub:Unload() end)
+            AddCreamButton(rCol, "⛔ UNLOAD HUB / DELETE EVERYTHING", function() LurnaHub:Unload() end)
 
             -- Right Column: Live Terminal Stream Window
             AddSectionDivider(rCol, "Live Terminal Stream (Thời Gian Thực)")
@@ -6635,11 +6728,11 @@ local function CreateNativeUI()
                 terminalFrame.CanvasPosition = Vector2.new(0, 999999)
             end
 
-            CPHub.UpdateDebugUI = function(msg)
+            LurnaHub.UpdateDebugUI = function(msg)
                 pcall(function() AddTerminalLine(msg) end)
             end
 
-            CPHub.ClearTerminalUI = function()
+            LurnaHub.ClearTerminalUI = function()
                 pcall(function()
                     for _, ch in ipairs(terminalFrame:GetChildren()) do
                         if ch:IsA("TextLabel") then ch:Destroy() end
@@ -6648,18 +6741,18 @@ local function CreateNativeUI()
             end
 
             -- Nạp các log đã có trước đó
-            for _, oldLog in ipairs(CPHub.Logs) do
+            for _, oldLog in ipairs(LurnaHub.Logs) do
                 AddTerminalLine(oldLog)
             end
         end
     end
 
     SwitchTab(1)
-    CPHub:Debug("SUCCESS", "Giao diện CP Hub 14 Tab đã khởi tạo và kích hoạt Tab 1 hoàn tất!")
+    LurnaHub:Debug("SUCCESS", "Giao diện CP Hub 14 Tab đã khởi tạo và kích hoạt Tab 1 hoàn tất!")
 end
 
 task.spawn(function()
     pcall(CreateNativeUI)
 end)
 
-return CPHub
+return LurnaHub
