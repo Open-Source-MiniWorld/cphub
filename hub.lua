@@ -646,6 +646,34 @@ end
 -- 6. WEAPON, PHYSICS & PERSISTENT FLIGHT ENGINE
 -- ============================================================================
 
+local function GetTargetEnemy(mobName)
+    if not mobName then return nil end
+    local cleanTarget = string.lower(tostring(mobName))
+    local enemies = Workspace:FindFirstChild("Enemies")
+    if enemies then
+        for _, mob in ipairs(enemies:GetChildren()) do
+            if mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                local mName = string.lower(mob.Name)
+                if string.find(mName, cleanTarget, 1, true) or string.find(cleanTarget, mName, 1, true) then
+                    return mob
+                end
+            end
+        end
+    end
+    local chars = Workspace:FindFirstChild("Characters")
+    if chars then
+        for _, mob in ipairs(chars:GetChildren()) do
+            if mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                local mName = string.lower(mob.Name)
+                if string.find(mName, cleanTarget, 1, true) or string.find(cleanTarget, mName, 1, true) then
+                    return mob
+                end
+            end
+        end
+    end
+    return nil
+end
+
 local function EquipWeapon(weaponName)
     if not weaponName then return end
     local char = LocalPlayer.Character
@@ -764,30 +792,36 @@ local function SmoothTweenTo(targetCFrame, speedOverride)
 
     local hrp = LocalPlayer.Character.HumanoidRootPart
     local distance = (targetCFrame.Position - hrp.Position).Magnitude
-    if distance < 4 then hrp.CFrame = targetCFrame; return end
-    if TeleportState.IsTeleporting and TeleportState.TargetCFrame and (TeleportState.TargetCFrame.Position - targetCFrame.Position).Magnitude < 3 then
+    if distance < 6 then 
+        hrp.CFrame = targetCFrame
+        TeleportState.IsTeleporting = false
+        TeleportState.TargetCFrame = nil
+        return 
+    end
+
+    -- If already tweening towards a target close to this one (within 25 studs), allow the active tween to continue!
+    if TeleportState.IsTeleporting and TeleportState.TargetCFrame and (TeleportState.TargetCFrame.Position - targetCFrame.Position).Magnitude < 25 then
         return TeleportState.ActiveTween
     end
 
-    if TeleportState.ActiveTween then TeleportState.ActiveTween:Cancel() end
+    if TeleportState.ActiveTween then 
+        TeleportState.ActiveTween:Cancel() 
+    end
     TeleportState.IsTeleporting = true
     TeleportState.TargetCFrame = targetCFrame
     MaintainAntiGravity()
 
-    local tweenCFrame = targetCFrame
-    if distance > 250 and math.abs(hrp.Position.Y - targetCFrame.Position.Y) < 150 then
-        tweenCFrame = CFrame.new(targetCFrame.Position.X, math.max(hrp.Position.Y, targetCFrame.Position.Y) + 75, targetCFrame.Position.Z)
-    end
-
     local currentSpeed = speedOverride or tonumber(CPHub.Config.TweenSpeed) or 270
     local duration = distance / currentSpeed
-    local tween = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = tweenCFrame })
+    local tween = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = targetCFrame })
     TeleportState.ActiveTween = tween
     tween:Play()
 
     tween.Completed:Connect(function(status)
         if status == Enum.PlaybackState.Completed then
-            if (hrp.Position - targetCFrame.Position).Magnitude > 5 then hrp.CFrame = targetCFrame end
+            if (hrp.Position - targetCFrame.Position).Magnitude > 5 then 
+                hrp.CFrame = targetCFrame 
+            end
             TeleportState.IsTeleporting = false
             TeleportState.TargetCFrame = nil
         end
@@ -963,26 +997,18 @@ function FarmEngineModule.Init()
                                 end
                             end
                         else
-                            local targetMob = nil
-                            if Enemies then
-                                for _, mob in ipairs(Enemies:GetChildren()) do
-                                    if mob.Name == mobData.MobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                                        targetMob = mob; break
-                                    end
-                                end
-                            end
-
-                            if targetMob then
+                            local targetMob = GetTargetEnemy(mobData.MobName) or GetTargetEnemy(mobData.FullName)
+                            if targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
                                 local mobHRP = targetMob.HumanoidRootPart
                                 PosMon = mobHRP.Position
                                 BringEnemy()
                                 local tool = weaponSc(CPHub.Config.SelectWeapon)
-                                local farmCF = (mobHRP.CFrame * CFrame.new(0, 20, 8)) * CFrame.Angles(0, math.rad(180), 0)
-                                if tool and tool.ToolTip == "Blox Fruit" then farmCF = (mobHRP.CFrame * CFrame.new(0, 10, 0)) * CFrame.Angles(0, math.rad(90), 0) end
+                                local reach = tonumber(CPHub.Config.AttackReach) or 20
+                                local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
                                 SmoothTweenTo(farmCF)
                             else
                                 local spawnCF = mobData.SpawnLocation and mobData.SpawnLocation[1] or quest.QuestCFrame
-                                SmoothTweenTo(spawnCF * CFrame.new(0, 35, 0))
+                                SmoothTweenTo(spawnCF * CFrame.new(0, 25, 0))
                             end
                         end
 
@@ -3289,27 +3315,18 @@ function MasterKaitunModule.Init()
                             end
                         end
                     else
-                        local Enemies = Workspace:FindFirstChild("Enemies")
-                        local targetMob = nil
-                        if Enemies then
-                            for _, mob in ipairs(Enemies:GetChildren()) do
-                                if mob.Name == mobData.MobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                                    targetMob = mob
-                                    break
-                                end
-                            end
-                        end
-
-                        if targetMob then
+                        local targetMob = GetTargetEnemy(mobData.MobName) or GetTargetEnemy(mobData.FullName)
+                        if targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
                             local mobHRP = targetMob.HumanoidRootPart
                             PosMon = mobHRP.Position
                             BringEnemy()
                             local tool = weaponSc(CPHub.Config.SelectWeapon)
-                            local farmCF = (mobHRP.CFrame * CFrame.new(0, 18, 8)) * CFrame.Angles(0, math.rad(180), 0)
+                            local reach = tonumber(CPHub.Config.AttackReach) or 20
+                            local farmCF = (mobHRP.CFrame * CFrame.new(0, reach, 0)) * CFrame.Angles(math.rad(-90), 0, 0)
                             SmoothTweenTo(farmCF)
                         else
                             local spawnCF = mobData.SpawnLocation and mobData.SpawnLocation[1] or quest.QuestCFrame
-                            SmoothTweenTo(spawnCF * CFrame.new(0, 35, 0))
+                            SmoothTweenTo(spawnCF * CFrame.new(0, 25, 0))
                         end
                     end
                 end)
@@ -4331,8 +4348,8 @@ local function CreateNativeUI()
 
     -- Header Title & Subtitle
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(0, 140, 0, 20)
-    TitleLabel.Position = UDim2.new(0, 50, 0.5, -10)
+    TitleLabel.Size = UDim2.new(0, 110, 0, 20)
+    TitleLabel.Position = UDim2.new(0, 48, 0.5, -10)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Text = "👑 Super Kaitun"
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -4346,8 +4363,8 @@ local function CreateNativeUI()
     -- Top Right Horizontal Icon Tab Bar Container (Smooth Horizontal ScrollingFrame)
     local IconTabBar = Instance.new("ScrollingFrame")
     IconTabBar.Name = "IconTabBar"
-    IconTabBar.Size = UDim2.new(1, -240, 0, 34)
-    IconTabBar.Position = UDim2.new(0, 195, 0.5, -17)
+    IconTabBar.Size = UDim2.new(1, -200, 0, 34)
+    IconTabBar.Position = UDim2.new(0, 160, 0.5, -17)
     IconTabBar.BackgroundTransparency = 1
     IconTabBar.BorderSizePixel = 0
     IconTabBar.ScrollBarThickness = 0
@@ -4367,7 +4384,7 @@ local function CreateNativeUI()
     -- Top Right Control Buttons (Close / Minimize)
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Size = UDim2.new(0, 28, 0, 28)
-    CloseBtn.Position = UDim2.new(1, -36, 0.5, -14)
+    CloseBtn.Position = UDim2.new(1, -34, 0.5, -14)
     CloseBtn.BackgroundColor3 = Color3.fromRGB(235, 55, 75)
     CloseBtn.Text = "X"
     CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -4436,11 +4453,11 @@ local function CreateNativeUI()
         end
     end)
 
-    -- IN-GAME DRAGGABLE LIVE TELEMETRY MINI HUD (Positioned at Top-Left so it never blocks the menu)
+    -- IN-GAME DRAGGABLE LIVE TELEMETRY MINI HUD (Positioned at Bottom-Left so it NEVER blocks the menu)
     local MiniHUD = Instance.new("Frame")
     MiniHUD.Name = "CPHub_FloatingHUD"
     MiniHUD.Size = UDim2.fromOffset(235, 138)
-    MiniHUD.Position = UDim2.new(0.02, 0, 0.03, 0)
+    MiniHUD.Position = UDim2.new(0.02, 0, 0.68, 0)
     MiniHUD.BackgroundColor3 = Color3.fromRGB(15, 16, 22)
     MiniHUD.BackgroundTransparency = 0.1
     MiniHUD.BorderSizePixel = 0
@@ -4685,7 +4702,7 @@ local function CreateNativeUI()
         leftCol.ScrollBarThickness = 3
         leftCol.ScrollBarImageColor3 = Color3.fromRGB(245, 230, 175)
         leftCol.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        leftCol.CanvasSize = UDim2.new(0, 0, 0, 0)
+        leftCol.CanvasSize = UDim2.new(0, 0, 0, 2000)
         leftCol.ZIndex = 3
         leftCol.Parent = page
 
@@ -4720,7 +4737,7 @@ local function CreateNativeUI()
         rightCol.ScrollBarThickness = 3
         rightCol.ScrollBarImageColor3 = Color3.fromRGB(245, 230, 175)
         rightCol.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        rightCol.CanvasSize = UDim2.new(0, 0, 0, 0)
+        rightCol.CanvasSize = UDim2.new(0, 0, 0, 2000)
         rightCol.ZIndex = 3
         rightCol.Parent = page
 
@@ -5206,15 +5223,6 @@ local function CreateNativeUI()
         iconBtn.Activated:Connect(OpenModalSelector)
     end
 
-    -- ============================================================================
-    -- TAB 1: 🌟 AUTO KAITUN PRO (1 - 2550) & MAIN FARM DASHBOARD
-    -- ============================================================================
-    local Page1 = TabFrames[1]
-    local Left1 = Page1:FindFirstChild("LeftColumn")
-    local Right1 = Page1:FindFirstChild("RightColumn")
-
-    -- Left Column Widgets: 🌟 SUPER KAITUN & AUTO KAITUN PRO MASTER CONTROLS
-    AddSectionDivider(Left1, "🏆 ULTIMATE SUPER KAITUN (ALL IN ONE)")
     -- ============================================================================
     -- TAB 1: 👑 SUPER KAITUN & AUTO KAITUN PRO MASTER DASHBOARD
     -- ============================================================================
